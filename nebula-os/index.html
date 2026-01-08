@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebula OS - Monochrome Interstellar Network</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@200;400;700&display=swap');
+        
+        :root {
+            --bg-dark: #000000;
+            --accent-white: #ffffff;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Anuphan', sans-serif;
+            background-color: var(--bg-dark);
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .glass:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .nebula-gradient {
+            background: #000000;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.4;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .modal-enter {
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .btn-premium {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .btn-premium::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            transition: 0.5s;
+        }
+
+        .btn-premium:hover::after {
+            left: 100%;
+        }
+
+        .post-image-container {
+            width: 100%;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #0a0a0a;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .post-image-placeholder {
+            filter: grayscale(100%) contrast(1.2);
+            opacity: 0.8;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ffffff11;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ffffff22;
+        }
+
+        /* Toast Notifications */
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            color: white;
+            z-index: 1000;
+            display: none;
+            animation: slideUp 0.3s ease-out;
+        }
+    </style>
+</head>
+<body class="nebula-gradient min-h-screen">
+
+    <div id="star-container" class="fixed inset-0 pointer-events-none"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 px-6 py-6 transition-all duration-500" id="navbar">
+        <div class="max-w-6xl mx-auto flex justify-between items-center glass rounded-full px-8 py-3">
+            <div class="flex items-center gap-3 group cursor-pointer">
+                <div class="w-10 h-10 bg-zinc-800 text-white rounded-xl flex items-center justify-center transition-transform group-hover:rotate-12 border border-white/10">
+                    <i class="fas fa-terminal"></i>
+                </div>
+                <span class="font-bold text-2xl tracking-tighter uppercase text-zinc-200">Nebula</span>
+            </div>
+            <div class="hidden md:flex gap-10 text-[13px] font-bold uppercase tracking-[0.2em] text-white/30">
+                <a href="#" class="hover:text-white transition-colors">Core</a>
+                <a href="#" class="hover:text-white transition-colors">Orbit</a>
+                <a href="#" class="hover:text-white transition-colors">Nexus</a>
+            </div>
+            
+            <div id="auth-controls">
+                <button onclick="toggleAuthModal()" class="btn-premium bg-zinc-100 text-black px-8 py-2.5 rounded-full font-bold text-sm hover:bg-white transition-colors">
+                    INITIALIZE
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-48 pb-20 px-6">
+        <div class="max-w-4xl mx-auto">
+            <!-- Hero Section -->
+            <section class="text-center mb-32 reveal">
+                <h1 class="text-7xl md:text-9xl font-black mb-8 tracking-tighter bg-gradient-to-b from-zinc-100 via-zinc-400 to-black bg-clip-text text-transparent leading-none">
+                    NEBULA OS
+                </h1>
+                <p class="text-white/40 text-lg md:text-xl max-w-xl mx-auto font-light leading-relaxed tracking-wide">
+                    The monochrome frontier of interstellar communication. Synchronize your digital existence.
+                </p>
+                <div class="mt-12 flex justify-center gap-6">
+                    <div class="w-px h-24 bg-gradient-to-b from-white/10 to-transparent"></div>
+                </div>
+            </section>
+
+            <!-- Feed Section -->
+            <div id="feed" class="space-y-12">
+                <!-- Posts will be shown here -->
+                <article class="glass rounded-[3rem] p-10 reveal">
+                    <div class="flex items-center justify-between mb-8">
+                        <div class="flex items-center gap-5">
+                            <div class="w-14 h-14 rounded-2xl bg-zinc-800 border border-white/10 flex items-center justify-center">
+                                <i class="fas fa-user-shield text-zinc-300 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-xl tracking-tight text-zinc-200">Root_Admin</h3>
+                                <p class="text-white/20 text-[11px] uppercase tracking-widest">Protocol 0-1 • Sector 7G</p>
+                            </div>
+                        </div>
+                        <div class="text-[10px] bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-white/40 uppercase tracking-tighter font-bold">
+                            Active Signal
+                        </div>
+                    </div>
+                    <p class="text-white/60 leading-relaxed mb-6 text-xl font-light italic">
+                        "Welcome to the network. Please sign in to interact with the system."
+                    </p>
+                </article>
+            </div>
+        </div>
+    </main>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-6 hidden">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-md" onclick="toggleAuthModal()"></div>
+        <div class="relative w-full max-w-md bg-zinc-950 rounded-[3rem] p-12 modal-enter border border-white/5">
+            <div class="text-center mb-10">
+                <div class="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-white/10">
+                    <i class="fas fa-key text-zinc-400 text-2xl"></i>
+                </div>
+                <h2 id="modal-title" class="text-3xl font-black mb-2 tracking-tight uppercase text-zinc-100">Identity Link</h2>
+                <p id="modal-desc" class="text-white/30 text-xs uppercase tracking-[0.3em]">Accessing Galactic Hub</p>
+            </div>
+            
+            <form id="auth-form" class="space-y-5">
+                <div class="group">
+                    <input type="email" id="email" placeholder="NEBULA EMAIL" class="w-full bg-white/[0.02] border border-white/10 rounded-2xl py-5 px-8 text-sm text-zinc-300 focus:outline-none focus:border-white/30 focus:bg-white/[0.05] transition-all placeholder:text-white/10" required>
+                </div>
+                <div class="group">
+                    <input type="password" id="password" placeholder="ACCESS KEY" class="w-full bg-white/[0.02] border border-white/10 rounded-2xl py-5 px-8 text-sm text-zinc-300 focus:outline-none focus:border-white/30 focus:bg-white/[0.05] transition-all placeholder:text-white/10" required>
+                </div>
+                
+                <button type="submit" id="auth-submit-btn" class="w-full py-5 bg-zinc-100 text-black rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-white transition-all mt-6 active:scale-95">
+                    Sync Identity
+                </button>
+
+                <div class="text-center mt-6">
+                    <button type="button" id="toggle-auth-type" class="text-[10px] text-white/20 uppercase tracking-[0.2em] hover:text-white transition-colors">
+                        Need a new identity? (Sign Up)
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast">Message goes here</div>
+
+    <script>
+        // --- Supabase Configuration ---
+        // ใส่ URL และ Anon Key ของคุณที่นี่
+        const SUPABASE_URL = 'https://YOUR_PROJECT_URL.supabase.co';
+        const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+        
+        // แก้ไข: เปลี่ยนชื่อตัวแปรจาก supabase เป็น supabaseClient เพื่อไม่ให้ชนกับ namespace ของไลบรารี
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- Auth Logic ---
+        let isSignUp = false;
+        const authForm = document.getElementById('auth-form');
+        const authSubmitBtn = document.getElementById('auth-submit-btn');
+        const toggleAuthBtn = document.getElementById('toggle-auth-type');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDesc = document.getElementById('modal-desc');
+
+        toggleAuthBtn.addEventListener('click', () => {
+            isSignUp = !isSignUp;
+            modalTitle.innerText = isSignUp ? "Create Identity" : "Identity Link";
+            modalDesc.innerText = isSignUp ? "Registering Node" : "Accessing Galactic Hub";
+            authSubmitBtn.innerText = isSignUp ? "Establish Signal" : "Sync Identity";
+            toggleAuthBtn.innerText = isSignUp ? "Already linked? (Sign In)" : "Need a new identity? (Sign Up)";
+        });
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            authSubmitBtn.disabled = true;
+            authSubmitBtn.innerText = "PROCESSING...";
+
+            try {
+                if (isSignUp) {
+                    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                    if (error) throw error;
+                    showToast("Identity Established! Check your email.");
+                } else {
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    showToast("Signal Synced. Welcome back.");
+                    toggleAuthModal();
+                }
+            } catch (error) {
+                showToast("ERROR: " + error.message);
+            } finally {
+                authSubmitBtn.disabled = false;
+                authSubmitBtn.innerText = isSignUp ? "Establish Signal" : "Sync Identity";
+            }
+        });
+
+        // --- Session Management ---
+        async function checkUser() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            updateUI(session?.user);
+        }
+
+        function updateUI(user) {
+            const controls = document.getElementById('auth-controls');
+            if (user) {
+                controls.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <span class="text-[10px] text-white/30 font-bold uppercase tracking-widest">${user.email.split('@')[0]}</span>
+                        <button onclick="signOut()" class="text-white/10 hover:text-red-500 transition-colors">
+                            <i class="fas fa-power-off"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                controls.innerHTML = `
+                    <button onclick="toggleAuthModal()" class="btn-premium bg-zinc-100 text-black px-8 py-2.5 rounded-full font-bold text-sm hover:bg-white transition-colors">
+                        INITIALIZE
+                    </button>
+                `;
+            }
+        }
+
+        async function signOut() {
+            await supabaseClient.auth.signOut();
+            showToast("Signal Terminated.");
+            window.location.reload();
+        }
+
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+            updateUI(session?.user);
+        });
+
+        // --- Helper Functions ---
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        // --- UI Interactions ---
+        const starContainer = document.getElementById('star-container');
+        for (let i = 0; i < 120; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 1.5 + 0.5 + 'px';
+            star.style.width = size;
+            star.style.height = size;
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.setProperty('--duration', (Math.random() * 5 + 3) + 's');
+            starContainer.appendChild(star);
+        }
+
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('py-4');
+                nav.classList.remove('py-6');
+            } else {
+                nav.classList.add('py-6');
+                nav.classList.remove('py-4');
+            }
+        });
+
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 150;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        reveal();
+
+        function toggleAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Initialize user check
+        checkUser();
+    </script>
+</body>
+</html>
