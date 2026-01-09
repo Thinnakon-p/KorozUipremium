@@ -73,7 +73,6 @@
 
         <!-- Create Post Section -->
         <section id="section-broadcast" class="hidden max-w-4xl mx-auto pb-20">
-            <!-- Form content (unchanged from previous version) -->
             <div class="glass p-10 rounded-[3rem] border-white/10 shadow-2xl">
                 <h3 class="text-xl font-bold mb-8 italic uppercase flex items-center gap-3">
                     <span class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center not-italic">🚀</span>
@@ -125,7 +124,7 @@
         </section>
     </main>
 
-    <!-- Modal for Editing/Details -->
+    <!-- Modal -->
     <div id="modal-container" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 modal-bg">
         <div class="glass max-w-lg w-full rounded-[3rem] p-10 border-white/10 shadow-2xl relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 text-zinc-500 hover:text-white">
@@ -138,17 +137,38 @@
     <script>
         let currentAdmin = null;
 
-        // --- Core Functions ---
+        function checkAccessToken() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('t');
+            if (!token || token.length < 20) {
+                window.location.href = 'index.html?unauthorized=1';
+                return false;
+            }
+            return true;
+        }
 
         async function checkAdmin() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) { window.location.href = 'index.html'; return; }
+            if (!checkAccessToken()) return;
 
-            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
-            if (!profile || !profile.is_admin) { window.location.href = 'index.html'; return; }
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const { data: profile, error } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+
+            if (error || !profile || !profile.is_admin) {
+                window.location.href = 'index.html?unauthorized=1';
+                return;
+            }
 
             currentAdmin = profile;
-            document.getElementById('admin-name').innerText = profile.username;
+            document.getElementById('admin-name').innerText = profile.username || 'Admin';
             loadUsers();
         }
 
@@ -166,15 +186,13 @@
             document.getElementById('modal-container').classList.add('hidden');
         }
 
-        // --- User Management ---
-
         async function loadUsers() {
             const { data: users } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
             document.getElementById('user-list-container').innerHTML = users.map(u => `
                 <div class="glass p-6 rounded-[2rem] border-white/5 space-y-4 relative ${u.is_banned ? 'opacity-50 grayscale' : ''}">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/10 overflow-hidden">
-                             <img src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.username}" class="w-full h-full">
+                            <img src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.username}" class="w-full h-full">
                         </div>
                         <div class="flex-1">
                             <div class="font-bold text-white flex items-center gap-2">
@@ -185,7 +203,6 @@
                             <div class="text-[10px] text-zinc-600 truncate max-w-[120px]">${u.id}</div>
                         </div>
                     </div>
-                    
                     <div class="grid grid-cols-2 gap-2">
                         <button onclick="editUserModal('${u.id}')" class="text-[10px] py-2 bg-white/5 hover:bg-white/10 rounded-xl font-bold uppercase tracking-widest transition-all">Edit Profile</button>
                         <button onclick="toggleBan('${u.id}', ${u.is_banned})" class="text-[10px] py-2 ${u.is_banned ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'} rounded-xl font-bold uppercase tracking-widest transition-all">
@@ -198,8 +215,7 @@
 
         async function editUserModal(userId) {
             const { data: user } = await supabaseClient.from('profiles').select('*').eq('id', userId).single();
-            const content = document.getElementById('modal-content');
-            content.innerHTML = `
+            document.getElementById('modal-content').innerHTML = `
                 <h2 class="text-2xl font-black italic uppercase mb-6">Edit Explorer Profile</h2>
                 <div class="space-y-4">
                     <div>
@@ -233,8 +249,6 @@
                 loadUsers();
             }
         }
-
-        // --- Post & Analytics Management ---
 
         async function loadPosts() {
             const { data: posts } = await supabaseClient.from('posts').select(`
@@ -282,15 +296,13 @@
         }
 
         async function viewEngagement(postId, type) {
-            // Fetch users who liked or bookmarked
             const table = type === 'likes' ? 'likes' : 'bookmarks';
             const { data } = await supabaseClient.from(table).select('profiles(username)').eq('post_id', postId);
             
-            const content = document.getElementById('modal-content');
-            content.innerHTML = `
-                <h2 class="text-2xl font-black italic uppercase mb-6">${type} List</h2>
-                <div class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
-                    ${data && data.length > 0 ? data.map(item => `
+            document.getElementById('modal-content').innerHTML = `
+                <h2 class="text-2xl font-black italic uppercase mb-6">${type.charAt(0).toUpperCase() + type.slice(1)} List</h2>
+                <div class="space-y-2 max-h-60 overflow-y-auto">
+                    ${data?.length > 0 ? data.map(item => `
                         <div class="p-3 glass rounded-xl border-white/5 flex items-center gap-3">
                             <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-[10px] flex items-center justify-center font-bold">@</div>
                             <span class="text-sm font-bold text-zinc-300">${item.profiles.username}</span>
@@ -303,8 +315,7 @@
 
         async function editPostModal(postId) {
             const { data: post } = await supabaseClient.from('posts').select('*').eq('id', postId).single();
-            const content = document.getElementById('modal-content');
-            content.innerHTML = `
+            document.getElementById('modal-content').innerHTML = `
                 <h2 class="text-2xl font-black italic uppercase mb-6">Modify Transmission</h2>
                 <div class="space-y-4">
                     <div>
@@ -313,7 +324,7 @@
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2">Message Content</label>
-                        <textarea id="edit-post-content" class="w-full rounded-2xl p-4 text-sm min-h-[150px]">${post.content}</textarea>
+                        <textarea id="edit-post-content" class="w-full rounded-2xl p-4 text-sm min-h-[150px]">${post.content || ''}</textarea>
                     </div>
                     <button onclick="savePost('${post.id}')" class="w-full py-4 bg-emerald-500 text-black rounded-2xl font-black uppercase tracking-widest mt-4 hover:bg-emerald-400 transition-all">Update Signal</button>
                 </div>
@@ -331,8 +342,6 @@
             closeModal();
             loadPosts();
         }
-
-        // --- Deployment Logic (Existing) ---
 
         async function uploadToStorage(file, folder) {
             if (!file) return null;
@@ -369,16 +378,25 @@
                 user_id: currentAdmin.id
             }]).select().single();
 
+            if (error) {
+                alert("Deploy Failed: " + error.message);
+                btn.disabled = false;
+                deployText.innerText = "Deploy Signal";
+                return;
+            }
+
             if (fileUrl && post) {
                 await supabaseClient.from('shared_files').insert([{
                     post_id: post.id,
-                    file_name: attachmentFile.name,
+                    file_name: attachmentFile?.name || 'attachment',
                     file_url: fileUrl,
-                    file_size: `${(attachmentFile.size / 1024 / 1024).toFixed(2)} MB`
+                    file_size: attachmentFile ? `${(attachmentFile.size / 1024 / 1024).toFixed(2)} MB` : null
                 }]);
             }
 
             alert("Deployed Successfully.");
+            btn.disabled = false;
+            deployText.innerText = "Deploy Signal";
             window.location.reload();
         }
 
@@ -389,24 +407,26 @@
             }
         }
 
-        // --- Init ---
-        window.onload = checkAdmin;
-        
-        // File Previews UI logic
+        // File preview
         document.getElementById('upload-image').addEventListener('change', e => {
-            if (e.target.files[0]) {
-                document.getElementById('image-filename').innerText = e.target.files[0].name;
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('image-filename').innerText = file.name;
                 const r = new FileReader();
                 r.onload = ev => {
                     document.getElementById('image-preview').src = ev.target.result;
                     document.getElementById('image-preview-container').classList.remove('hidden');
                 };
-                r.readAsDataURL(e.target.files[0]);
+                r.readAsDataURL(file);
             }
         });
+
         document.getElementById('upload-file').addEventListener('change', e => {
-            if (e.target.files[0]) document.getElementById('file-filename').innerText = `READY: ${e.target.files[0].name}`;
+            const file = e.target.files[0];
+            if (file) document.getElementById('file-filename').innerText = `READY: ${file.name}`;
         });
+
+        window.onload = checkAdmin;
     </script>
 </body>
 </html>
