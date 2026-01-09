@@ -59,6 +59,7 @@
         <!-- Users Section -->
         <section id="section-users" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="user-list-container">
+                <!-- Loading State -->
                 <div class="animate-pulse glass h-20 rounded-2xl"></div>
                 <div class="animate-pulse glass h-20 rounded-2xl"></div>
             </div>
@@ -96,12 +97,44 @@
     <script>
         let currentAdmin = null;
 
+        // ฟังก์ชันช่วยตรวจสอบประเภทอุปกรณ์
+        function getDeviceType() {
+            const ua = navigator.userAgent;
+            if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return "Tablet";
+            if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
+                if (/iPhone|iPad|iPod/.test(ua)) return "iOS Device";
+                if (/Android/.test(ua)) return "Android Device";
+                return "Mobile";
+            }
+            return "Desktop PC";
+        }
+
+        // ฟังก์ชันดึง IP Address (ใช้ Service ภายนอกเนื่องจาก JS Client-side ดึงตรงไม่ได้)
+        async function getPublicIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (e) {
+                return 'Unknown IP';
+            }
+        }
+
         async function checkAdmin() {
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) {
                 window.location.href = 'index.html';
                 return;
             }
+
+            // บันทึกข้อมูล Admin เมื่อเข้าสู่หน้าจัดการ (Optional: เพื่อเก็บ Log ของ Admin เอง)
+            const ip = await getPublicIP();
+            const device = getDeviceType();
+            
+            await supabaseClient.from('profiles').update({ 
+                last_ip: ip, 
+                device_info: device 
+            }).eq('id', session.user.id);
 
             const { data: profile } = await supabaseClient
                 .from('profiles')
@@ -123,9 +156,13 @@
         function switchTab(tab) {
             const sections = ['users', 'posts', 'broadcast'];
             sections.forEach(s => {
-                document.getElementById(`section-${s}`).classList.toggle('hidden', s !== tab);
-                document.getElementById(`btn-${s}`).classList.toggle('sidebar-active', s === tab);
-                document.getElementById(`btn-${s}`).classList.toggle('opacity-50', s !== tab);
+                const el = document.getElementById(`section-${s}`);
+                const btn = document.getElementById(`btn-${s}`);
+                if(el) el.classList.toggle('hidden', s !== tab);
+                if(btn) {
+                    btn.classList.toggle('sidebar-active', s === tab);
+                    btn.classList.toggle('opacity-50', s !== tab);
+                }
             });
 
             const titles = { users: 'User Directory', posts: 'Signal Moderation', broadcast: 'Global Broadcast' };
@@ -145,29 +182,44 @@
             if (error) return;
 
             container.innerHTML = users.map(user => `
-                <div class="glass p-6 rounded-[2rem] flex items-center justify-between group hover:border-white/20 transition-all">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center font-bold">
-                            ${(user.username || 'U')[0].toUpperCase()}
-                        </div>
-                        <div>
-                            <div class="font-bold flex items-center gap-2 text-white">
-                                ${user.username}
-                                ${user.is_admin ? '<span class="text-[8px] bg-emerald-500/20 text-emerald-500 px-1.5 py-0.5 rounded border border-emerald-500/30">ADMIN</span>' : ''}
+                <div class="glass p-6 rounded-[2rem] flex flex-col gap-4 group hover:border-white/20 transition-all">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center font-bold">
+                                ${(user.username || 'U')[0].toUpperCase()}
                             </div>
-                            <div class="text-[10px] text-zinc-500 font-mono tracking-tighter">${user.id}</div>
+                            <div>
+                                <div class="font-bold flex items-center gap-2 text-white">
+                                    ${user.username || 'Anonymous'}
+                                    ${user.is_admin ? '<span class="text-[8px] bg-emerald-500/20 text-emerald-500 px-1.5 py-0.5 rounded border border-emerald-500/30">ADMIN</span>' : ''}
+                                </div>
+                                <div class="text-[10px] text-zinc-500 font-mono tracking-tighter">${user.id}</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-1">
+                            <button onclick="toggleAdminRole('${user.id}', ${user.is_admin})" title="Toggle Admin" class="p-2 hover:bg-white/5 rounded-xl ${user.is_admin ? 'text-emerald-500' : 'text-zinc-500'}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+                            </button>
+                            <button onclick="editUser('${user.id}', '${user.username}')" class="p-2 hover:bg-white/5 rounded-xl text-blue-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                            </button>
+                            <button onclick="deleteUser('${user.id}')" class="p-2 hover:bg-red-500/10 rounded-xl text-red-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                            </button>
                         </div>
                     </div>
-                    <div class="flex gap-2">
-                        <button onclick="toggleAdminRole('${user.id}', ${user.is_admin})" title="Toggle Admin Role" class="p-2 hover:bg-white/5 rounded-xl ${user.is_admin ? 'text-emerald-500' : 'text-zinc-500'}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
-                        </button>
-                        <button onclick="editUser('${user.id}', '${user.username}')" class="p-2 hover:bg-white/5 rounded-xl text-blue-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                        </button>
-                        <button onclick="deleteUser('${user.id}')" class="p-2 hover:bg-red-500/10 rounded-xl text-red-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                        </button>
+                    
+                    <div class="grid grid-cols-2 gap-2 border-t border-white/5 pt-4 mt-auto">
+                        <div class="bg-black/20 p-2 rounded-lg">
+                            <div class="text-[8px] text-zinc-600 uppercase font-bold tracking-widest">Last Known IP</div>
+                            <div class="text-[10px] font-mono text-zinc-400">${user.last_ip || '---.---.---.---'}</div>
+                        </div>
+                        <div class="bg-black/20 p-2 rounded-lg">
+                            <div class="text-[8px] text-zinc-600 uppercase font-bold tracking-widest">Platform</div>
+                            <div class="text-[10px] font-mono text-zinc-400 flex items-center gap-1">
+                                ${user.device_info ? `<span>${user.device_info}</span>` : 'Unknown'}
+                            </div>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -202,7 +254,7 @@
                 alert("You cannot revoke your own admin rights.");
                 return;
             }
-            const confirmMsg = currentStatus ? "Revoke Admin privileges from this user?" : "Grant Admin privileges to this user?";
+            const confirmMsg = currentStatus ? "Revoke Admin privileges?" : "Grant Admin privileges?";
             if (confirm(confirmMsg)) {
                 const { error } = await supabaseClient.from('profiles').update({ is_admin: !currentStatus }).eq('id', id);
                 if (error) alert(error.message);
@@ -211,7 +263,7 @@
         }
 
         async function editUser(id, oldName) {
-            const newName = prompt("Enter new username for profile:", oldName);
+            const newName = prompt("Enter new username:", oldName);
             if (!newName || newName === oldName) return;
             const { error } = await supabaseClient.from('profiles').update({ username: newName }).eq('id', id);
             if (error) alert(error.message);
@@ -220,10 +272,10 @@
 
         async function deleteUser(id) {
             if (id === currentAdmin.id) {
-                alert("You cannot delete your own profile while logged in.");
+                alert("Cannot delete self.");
                 return;
             }
-            if (confirm("🚨 WARNING: Delete user profile?\n\nThis will remove the user's metadata from the 'profiles' table. Note that the authentication account (email/password) must be managed through the Supabase Dashboard directly.")) {
+            if (confirm("🚨 WARNING: Delete user profile?")) {
                 const { error } = await supabaseClient.from('profiles').delete().eq('id', id);
                 if (error) alert(error.message);
                 else loadUsers();
@@ -231,7 +283,7 @@
         }
 
         async function deletePost(id) {
-            if (confirm("Confirm removal of this transmission?")) {
+            if (confirm("Remove this post?")) {
                 const { error } = await supabaseClient.from('posts').delete().eq('id', id);
                 if (error) alert(error.message);
                 else loadPosts();
@@ -250,7 +302,7 @@
 
             if (error) alert(error.message);
             else {
-                alert("Broadcast deployed successfully.");
+                alert("Broadcast deployed.");
                 input.value = '';
                 switchTab('posts');
             }
