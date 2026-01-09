@@ -27,16 +27,11 @@
             opacity: 0.3; 
             z-index: -1; 
         }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
+        @keyframes modal-up {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
+        .animate-modal { animation: modal-up 0.4s ease-out forwards; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -46,19 +41,49 @@
     <nav class="fixed top-0 w-full z-50 p-6 flex justify-between items-center glass rounded-b-[2.5rem]">
         <div class="text-2xl font-black tracking-tighter italic">NEBULA</div>
         <div id="auth-controls" class="flex gap-4 items-center">
-            <!-- สถานะการล็อกอินจะแสดงที่นี่ -->
             <div class="animate-pulse w-20 h-4 bg-white/10 rounded"></div>
         </div>
     </nav>
 
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+        <div class="glass w-full max-w-md p-10 rounded-[3rem] border-white/10 animate-modal relative">
+            <button onclick="toggleAuthModal(false)" class="absolute top-6 right-8 text-zinc-500 hover:text-white">✕</button>
+            
+            <div id="modal-content">
+                <h2 id="modal-title" class="text-3xl font-black italic mb-8 uppercase">Initialize</h2>
+                
+                <form onsubmit="handleAuth(event)" class="space-y-4">
+                    <div id="signup-fields" class="hidden space-y-4">
+                        <input type="text" id="auth-username" placeholder="Username" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 focus:outline-none focus:border-blue-500/50 text-white">
+                    </div>
+                    
+                    <input type="email" id="auth-email" placeholder="Email Address" required class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 focus:outline-none focus:border-blue-500/50 text-white">
+                    
+                    <input type="password" id="auth-password" placeholder="Password" required class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 focus:outline-none focus:border-blue-500/50 text-white">
+                    
+                    <div id="confirm-password-field" class="hidden">
+                        <input type="password" id="auth-confirm-password" placeholder="Confirm Password" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 focus:outline-none focus:border-blue-500/50 text-white">
+                    </div>
+                    
+                    <button type="submit" id="auth-submit" class="w-full py-5 bg-white text-black rounded-2xl font-bold uppercase tracking-widest hover:scale-[1.02] transition-transform mt-4 disabled:opacity-50" id="btn-submit">Connect</button>
+                </form>
+
+                <p class="text-center mt-8 text-xs text-zinc-500">
+                    <span id="auth-switch-text">New to the Nebula?</span>
+                    <button onclick="switchAuthMode()" id="auth-switch-btn" class="text-white font-bold underline ml-1">Create Account</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Content Feed -->
     <main class="max-w-xl mx-auto pt-32 pb-24 px-6">
         <header class="text-center mb-16 space-y-4">
-            <h1 class="text-6xl font-black uppercase tracking-tighter italic italic">Public Nexus</h1>
+            <h1 class="text-6xl font-black uppercase tracking-tighter italic">Public Nexus</h1>
             <p class="text-zinc-500 text-[10px] tracking-[0.6em] uppercase">Global Data Transmission</p>
         </header>
 
-        <!-- Post Creator (Only for logged in users) -->
         <div id="post-creator" class="hidden mb-12 glass p-6 rounded-[2rem] border-white/10">
             <textarea id="post-input" placeholder="Broadcast your signal..." class="w-full bg-transparent border-none focus:ring-0 text-zinc-200 placeholder:text-zinc-600 resize-none h-24 text-lg"></textarea>
             <div class="flex justify-end pt-4 border-t border-white/5">
@@ -66,35 +91,92 @@
             </div>
         </div>
 
-        <!-- Posts Feed -->
         <div id="feed-container" class="space-y-8">
-            <div class="text-center py-20 opacity-30 animate-pulse text-xs uppercase tracking-widest">
-                Scanning for signals...
-            </div>
+            <div class="text-center py-20 opacity-30 animate-pulse text-xs uppercase tracking-widest">Scanning for signals...</div>
         </div>
     </main>
 
     <script>
         let currentUser = null;
+        let isSignUp = false;
 
         async function init() {
-            if (!supabaseClient) {
-                console.error("Supabase client not initialized. Check config.js");
+            // ตรวจสอบว่า CONFIG ถูกโหลดมาหรือยัง
+            if (typeof CONFIG === 'undefined' || !CONFIG.SUPABASE_URL || CONFIG.SUPABASE_URL.includes("your-project-id")) {
+                console.error("กรุณาตั้งค่า CONFIG ใน config.js ให้ถูกต้อง");
+                document.getElementById('feed-container').innerHTML = `<div class="glass p-8 rounded-3xl text-yellow-500 text-xs text-center uppercase font-bold tracking-widest">⚠️ กรุณาตั้งค่า API ในไฟล์ config.js</div>`;
                 return;
             }
 
-            // ตรวจสอบ Session
             const { data: { session } } = await supabaseClient.auth.getSession();
             currentUser = session?.user;
-            
             updateAuthUI();
             loadPosts();
 
-            // ฟังการเปลี่ยนแปลง Auth
             supabaseClient.auth.onAuthStateChanged((_event, session) => {
                 currentUser = session?.user;
                 updateAuthUI();
+                if (currentUser) toggleAuthModal(false);
             });
+        }
+
+        function toggleAuthModal(show = true) {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.toggle('hidden', !show);
+        }
+
+        function switchAuthMode() {
+            isSignUp = !isSignUp;
+            document.getElementById('modal-title').innerText = isSignUp ? 'Register' : 'Initialize';
+            document.getElementById('signup-fields').classList.toggle('hidden', !isSignUp);
+            document.getElementById('confirm-password-field').classList.toggle('hidden', !isSignUp);
+            
+            const confirmInput = document.getElementById('auth-confirm-password');
+            if(isSignUp) confirmInput.setAttribute('required', '');
+            else confirmInput.removeAttribute('required');
+
+            document.getElementById('auth-submit').innerText = isSignUp ? 'Join Nebula' : 'Connect';
+            document.getElementById('auth-switch-text').innerText = isSignUp ? 'Already a member?' : 'New to the Nebula?';
+            document.getElementById('auth-switch-btn').innerText = isSignUp ? 'Sign In' : 'Create Account';
+        }
+
+        async function handleAuth(e) {
+            e.preventDefault();
+            const btn = document.getElementById('auth-submit');
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const confirmPassword = document.getElementById('auth-confirm-password').value;
+            const username = document.getElementById('auth-username').value;
+
+            if (isSignUp && password !== confirmPassword) {
+                alert("รหัสผ่านไม่ตรงกัน");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            try {
+                if (isSignUp) {
+                    const { data, error } = await supabaseClient.auth.signUp({
+                        email,
+                        password,
+                        options: { 
+                            data: { username: username || email.split('@')[0] } 
+                        }
+                    });
+                    if (error) throw error;
+                    alert("ลงทะเบียนสำเร็จ! หากคุณเปิดระบบ Email Confirmation ไว้ กรุณาตรวจสอบอีเมลของคุณ");
+                } else {
+                    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                }
+            } catch (err) {
+                alert("Auth Error: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = isSignUp ? 'Join Nebula' : 'Connect';
+            }
         }
 
         async function updateAuthUI() {
@@ -105,55 +187,50 @@
                 const isAdmin = await checkAdminStatus(currentUser);
                 creator.classList.remove('hidden');
                 controls.innerHTML = `
-                    ${isAdmin ? '<a href="admin.html" class="text-[10px] font-bold bg-emerald-500 text-black px-4 py-2 rounded-full uppercase shadow-lg shadow-emerald-500/20">Admin Console</a>' : ''}
-                    <button onclick="logout()" class="text-xs font-bold opacity-50 hover:opacity-100 transition-opacity uppercase">Sign Out</button>
+                    ${isAdmin ? '<a href="admin.html" class="text-[10px] font-bold bg-emerald-500 text-black px-4 py-2 rounded-full uppercase">Admin</a>' : ''}
+                    <button onclick="logout()" class="text-xs font-bold opacity-50 uppercase hover:opacity-100 transition-opacity">Sign Out</button>
                 `;
             } else {
                 creator.classList.add('hidden');
                 controls.innerHTML = `
-                    <button onclick="alert('กรุณาเข้าสู่ระบบผ่านระบบจำลองการ Login')" class="text-xs font-bold uppercase opacity-50 hover:opacity-100 transition-opacity">Initialize Session</button>
+                    <button onclick="toggleAuthModal(true)" class="text-xs font-bold uppercase bg-white text-black px-6 py-2 rounded-full hover:scale-105 transition-transform">Sign In</button>
                 `;
             }
         }
 
         async function loadPosts() {
             const container = document.getElementById('feed-container');
-            
             const { data: posts, error } = await supabaseClient
                 .from('posts')
                 .select('*, profiles(username)')
                 .order('created_at', { ascending: false });
 
             if (error) {
-                container.innerHTML = `<div class="glass p-8 rounded-3xl text-red-400 text-xs font-mono">SIGNAL_ERROR: ${error.message}</div>`;
+                console.error(error);
+                container.innerHTML = `<div class="glass p-8 rounded-3xl text-red-400 text-xs text-center uppercase italic">Signal Lost: Please check Database RLS</div>`;
                 return;
             }
 
             if (!posts || posts.length === 0) {
-                container.innerHTML = `<div class="text-center py-20 opacity-20 italic text-sm">No signals detected in this sector...</div>`;
+                container.innerHTML = `<div class="text-center py-20 opacity-20 italic text-sm">Nexus is quiet... No signals found.</div>`;
                 return;
             }
 
             container.innerHTML = posts.map(post => `
-                <div class="glass p-8 rounded-[2.5rem] hover:bg-white/[0.04] transition-all group border-white/5">
+                <div class="glass p-8 rounded-[2.5rem] border-white/5 animate-modal">
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-900 border border-white/10 flex items-center justify-center text-[10px] font-bold">
-                            ${(post.profiles?.username || 'U').charAt(0).toUpperCase()}
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-800 flex items-center justify-center text-[10px] font-bold">
+                            ${(post.profiles?.username || 'U')[0].toUpperCase()}
                         </div>
                         <div>
-                            <p class="text-sm font-bold text-zinc-300">@${post.profiles?.username || 'unknown_node'}</p>
-                            <p class="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">Verified Data Trunk</p>
+                            <span class="block text-sm font-bold text-zinc-300">@${post.profiles?.username || 'explorer'}</span>
+                            <span class="block text-[8px] text-zinc-600 uppercase font-black tracking-widest">Verified Signal</span>
                         </div>
                     </div>
-                    
-                    <p class="text-lg font-light leading-relaxed text-zinc-200 mb-8 whitespace-pre-wrap">${post.content}</p>
-                    
-                    <div class="pt-6 border-t border-white/5 flex justify-between items-center text-[10px] font-bold text-zinc-600 uppercase">
-                        <div class="flex gap-4">
-                            <button class="hover:text-blue-400 transition-colors italic">Like</button>
-                            <button class="hover:text-blue-400 transition-colors italic">Relay</button>
-                        </div>
-                        <span class="opacity-40">${new Date(post.created_at).toLocaleString('th-TH')}</span>
+                    <p class="text-lg font-light text-zinc-200 mb-8 whitespace-pre-wrap leading-relaxed">${post.content}</p>
+                    <div class="pt-6 border-t border-white/5 text-[9px] font-bold text-zinc-600 uppercase flex justify-between">
+                        <span>${new Date(post.created_at).toLocaleDateString('th-TH')}</span>
+                        <span class="opacity-50">#${post.id.slice(0, 8)}</span>
                     </div>
                 </div>
             `).join('');
@@ -162,21 +239,15 @@
         async function createPost() {
             const input = document.getElementById('post-input');
             const content = input.value.trim();
-
             if (!content || !currentUser) return;
-
-            const { error } = await supabaseClient
-                .from('posts')
-                .insert([{ 
-                    content: content, 
-                    author_id: currentUser.id 
-                }]);
-
+            
+            const { error } = await supabaseClient.from('posts').insert([{ content, author_id: currentUser.id }]);
+            
             if (error) {
-                alert("Failed to broadcast: " + error.message);
-            } else {
-                input.value = '';
-                loadPosts();
+                alert("Broadcast Failed: " + error.message);
+            } else { 
+                input.value = ''; 
+                loadPosts(); 
             }
         }
 
@@ -185,7 +256,6 @@
             location.reload();
         }
 
-        // เริ่มต้นระบบเมื่อโหลดหน้าเสร็จ
         window.onload = init;
     </script>
 </body>
