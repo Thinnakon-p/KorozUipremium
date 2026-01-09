@@ -14,6 +14,8 @@
         .sidebar-active { background: rgba(255,255,255,0.1); border-left: 4px solid #10b981; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        input, textarea { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
+        input:focus, textarea:focus { border-color: #10b981 !important; outline: none; }
     </style>
 </head>
 <body class="min-h-screen flex">
@@ -37,7 +39,7 @@
             </button>
             <button onclick="switchTab('broadcast')" id="btn-broadcast" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all flex items-center gap-3 opacity-50 hover:opacity-100">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
-                Broadcast
+                Create Post
             </button>
         </nav>
 
@@ -75,7 +77,7 @@
                     <thead>
                         <tr class="bg-white/5 text-[10px] uppercase tracking-widest text-zinc-500">
                             <th class="p-5">Author</th>
-                            <th class="p-5">Post Content & Image Info</th>
+                            <th class="p-5">Post Details</th>
                             <th class="p-5">Date</th>
                             <th class="p-5 text-right">Actions</th>
                         </tr>
@@ -106,12 +108,44 @@
             </div>
         </section>
 
-        <!-- Broadcast Section -->
-        <section id="section-broadcast" class="hidden max-w-2xl mx-auto">
+        <!-- Broadcast/Create Post Section -->
+        <section id="section-broadcast" class="hidden max-w-3xl mx-auto">
             <div class="glass p-10 rounded-[3rem] border-white/10">
-                <h3 class="text-xl font-bold mb-6 italic uppercase">Create Global Broadcast</h3>
-                <textarea id="broadcast-input" placeholder="Enter system announcement..." class="w-full bg-white/5 border border-white/10 rounded-[2rem] p-8 text-lg focus:outline-none focus:border-emerald-500/50 min-h-[200px] mb-6"></textarea>
-                <button onclick="handleBroadcast()" class="w-full py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest hover:scale-[1.02] transition-transform">Deploy to Nexus</button>
+                <h3 class="text-xl font-bold mb-6 italic uppercase">Create Advanced Broadcast</h3>
+                
+                <div class="space-y-6">
+                    <!-- Title -->
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Post Title</label>
+                        <input type="text" id="post-title" placeholder="Enter post heading..." class="w-full rounded-2xl p-4 text-sm">
+                    </div>
+
+                    <!-- Content -->
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Main Content</label>
+                        <textarea id="post-content" placeholder="What's the message?..." class="w-full rounded-2xl p-4 text-sm min-h-[120px]"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Image Caption -->
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Image URL & Caption</label>
+                            <input type="text" id="post-image-url" placeholder="https://image-url.com..." class="w-full rounded-2xl p-4 text-sm mb-2">
+                            <input type="text" id="post-image-caption" placeholder="Describe this image..." class="w-full rounded-2xl p-4 text-sm">
+                        </div>
+
+                        <!-- File Attachment -->
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Attach Shared File</label>
+                            <input type="text" id="post-file-name" placeholder="File Name (e.g. Update_V2.pdf)" class="w-full rounded-2xl p-4 text-sm mb-2">
+                            <input type="text" id="post-file-url" placeholder="Direct Download URL..." class="w-full rounded-2xl p-4 text-sm">
+                        </div>
+                    </div>
+
+                    <button onclick="handleAdvancedPost()" id="btn-submit-post" class="w-full py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest hover:scale-[1.01] active:scale-95 transition-all mt-4">
+                        Deploy Signal
+                    </button>
+                </div>
             </div>
         </section>
     </main>
@@ -187,13 +221,13 @@
             const titles = { 
                 users: 'User Directory', 
                 posts: 'Signal Moderation', 
-                broadcast: 'Global Broadcast',
+                broadcast: 'Advanced Post Engine',
                 files: 'Shared Resource Management'
             };
             const descs = { 
                 users: 'Manage network access and profiles', 
                 posts: 'Monitor titles, captions, and transmissions', 
-                broadcast: 'Deploy official system announcements',
+                broadcast: 'Create content with attachments and metadata',
                 files: 'Track and moderate downloadable assets'
             };
             
@@ -260,14 +294,12 @@
                     </td>
                     <td class="p-5">
                         <div class="space-y-2">
-                            <div class="text-sm font-bold text-white uppercase italic tracking-wide">${post.title || 'Untitled Post'}</div>
+                            <div class="text-sm font-bold text-white uppercase italic tracking-wide">${post.title || 'Untitled'}</div>
                             <p class="text-xs text-zinc-400 line-clamp-2 max-w-md">${post.content}</p>
-                            ${post.image_caption ? `
-                                <div class="bg-white/5 p-2 rounded-lg border-l-2 border-emerald-500">
-                                    <span class="text-[8px] uppercase text-zinc-500 font-bold block">Image Caption</span>
-                                    <span class="text-[10px] text-emerald-400 italic">"${post.image_caption}"</span>
-                                </div>
-                            ` : ''}
+                            <div class="flex gap-2 flex-wrap mt-2">
+                                ${post.image_caption ? `<span class="text-[9px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20">CAPTION: ${post.image_caption}</span>` : ''}
+                                ${post.image_url ? `<span class="text-[9px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20">HAS IMAGE</span>` : ''}
+                            </div>
                         </div>
                     </td>
                     <td class="p-5 text-[10px] text-zinc-600 font-mono align-top">
@@ -307,6 +339,59 @@
             `).join('');
         }
 
+        async function handleAdvancedPost() {
+            const btn = document.getElementById('btn-submit-post');
+            const title = document.getElementById('post-title').value.trim();
+            const content = document.getElementById('post-content').value.trim();
+            const imageUrl = document.getElementById('post-image-url').value.trim();
+            const imageCaption = document.getElementById('post-image-caption').value.trim();
+            const fileName = document.getElementById('post-file-name').value.trim();
+            const fileUrl = document.getElementById('post-file-url').value.trim();
+
+            if (!content) return alert("Content is required.");
+
+            btn.disabled = true;
+            btn.innerText = "DEPLOYING...";
+
+            // 1. Create Post
+            const { data: postData, error: postError } = await supabaseClient.from('posts').insert([{
+                title: title || "Nebula Broadcast",
+                content: content,
+                image_url: imageUrl || null,
+                image_caption: imageCaption || null,
+                user_id: currentAdmin.id
+            }]).select();
+
+            if (postError) {
+                alert("Post Error: " + postError.message);
+                btn.disabled = false;
+                btn.innerText = "Deploy Signal";
+                return;
+            }
+
+            // 2. If file attached, add to shared_files
+            if (fileName && fileUrl && postData[0]) {
+                const { error: fileError } = await supabaseClient.from('shared_files').insert([{
+                    post_id: postData[0].id,
+                    file_name: fileName,
+                    file_url: fileUrl,
+                    file_size: "Shared via Admin"
+                }]);
+                if (fileError) console.error("File attachment error:", fileError);
+            }
+
+            alert("Advanced Post Deployed Successfully.");
+            
+            // Clear inputs
+            ['post-title', 'post-content', 'post-image-url', 'post-image-caption', 'post-file-name', 'post-file-url'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+
+            btn.disabled = false;
+            btn.innerText = "Deploy Signal";
+            switchTab('posts');
+        }
+
         async function toggleAdminRole(id, currentStatus) {
             if (id === currentAdmin.id) return alert("Cannot revoke self.");
             if (confirm("Change Admin Status?")) {
@@ -334,25 +419,6 @@
             if (confirm("Permanently delete this file entry?")) {
                 await supabaseClient.from('shared_files').delete().eq('id', id);
                 loadFiles();
-            }
-        }
-
-        async function handleBroadcast() {
-            const input = document.getElementById('broadcast-input');
-            const content = input.value.trim();
-            if (!content) return;
-
-            const { error } = await supabaseClient.from('posts').insert([{
-                title: "SYSTEM ANNOUNCEMENT",
-                content: content,
-                author_id: currentAdmin.id
-            }]);
-
-            if (error) alert(error.message);
-            else {
-                alert("Broadcast deployed.");
-                input.value = '';
-                switchTab('posts');
             }
         }
 
