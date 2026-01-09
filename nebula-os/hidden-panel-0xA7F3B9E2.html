@@ -18,7 +18,7 @@
         /* Real Admin Styles */
         .admin-layout { font-family: 'Anuphan', sans-serif; background: #050505; color: #fff; display: none; }
         .glass { background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
-        .sidebar-active { background: rgba(255,255,255,0.1); border-left: 4px solid #10b981; }
+        .sidebar-active { background: rgba(255,255,255,0.1); border-left: 4px solid #10b981; color: #10b981; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
         input, textarea, select { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
@@ -49,22 +49,22 @@
             <nav class="flex-1 space-y-2">
                 <button onclick="switchTab('users')" id="btn-users" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all flex items-center gap-3 sidebar-active">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    Users & Security
+                    จัดการผู้ใช้และความปลอดภัย
                 </button>
                 <button onclick="switchTab('posts')" id="btn-posts" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all flex items-center gap-3 opacity-50 hover:opacity-100">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-                    Manage Posts
+                    จัดการโพสต์ทั้งหมด
                 </button>
                 <button onclick="switchTab('broadcast')" id="btn-broadcast" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all flex items-center gap-3 opacity-50 hover:opacity-100">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
-                    Create New Post
+                    ประกาศข่าวสารใหม่
                 </button>
             </nav>
 
             <div class="pt-6 border-t border-white/5">
                 <button onclick="handleLogout()" class="w-full p-4 rounded-2xl bg-white/5 text-xs font-bold text-zinc-500 hover:text-white hover:bg-red-500/20 transition-all flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                    Logout System
+                    ออกจากระบบ
                 </button>
             </div>
         </aside>
@@ -77,7 +77,7 @@
                     <p id="tab-desc" class="text-zinc-500 text-xs tracking-widest uppercase mt-1">User & System Access Control</p>
                 </div>
                 <div id="admin-info" class="text-right glass px-6 py-3 rounded-2xl">
-                    <div class="text-sm font-bold italic" id="admin-name">Commander</div>
+                    <div class="text-sm font-bold italic" id="admin-name">ผู้ดูแลระบบ</div>
                     <div class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Master Access</div>
                 </div>
             </header>
@@ -93,47 +93,47 @@
                 <div class="glass p-10 rounded-[3rem] border-white/10 shadow-2xl">
                     <h3 class="text-xl font-bold mb-8 italic uppercase flex items-center gap-3">
                         <span class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center not-italic">🚀</span>
-                        Compose High-Priority Post
+                        สร้างประกาศสำคัญ
                     </h3>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div class="space-y-6">
                             <div>
-                                <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Headline</label>
-                                <input type="text" id="post-title" placeholder="Topic name..." class="w-full rounded-2xl p-4 text-sm">
+                                <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">หัวข้อประกาศ</label>
+                                <input type="text" id="post-title" placeholder="พิมพ์หัวข้อที่นี่..." class="w-full rounded-2xl p-4 text-sm">
                             </div>
                             <div>
-                                <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Main Message</label>
-                                <textarea id="post-content" placeholder="Type your announcement here..." class="w-full rounded-2xl p-4 text-sm min-h-[180px]"></textarea>
+                                <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">เนื้อหาหลัก</label>
+                                <textarea id="post-content" placeholder="พิมพ์เนื้อหาประกาศของคุณที่นี่..." class="w-full rounded-2xl p-4 text-sm min-h-[180px]"></textarea>
                             </div>
                             <div>
-                                <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Image Caption</label>
-                                <input type="text" id="post-image-caption" placeholder="Visual description..." class="w-full rounded-2xl p-4 text-sm">
+                                <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">คำอธิบายรูปภาพ</label>
+                                <input type="text" id="post-image-caption" placeholder="คำบรรยายภาพ..." class="w-full rounded-2xl p-4 text-sm">
                             </div>
                         </div>
                         <div class="space-y-6">
                             <div>
-                                <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Visual Asset</label>
+                                <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">รูปภาพประกอบ</label>
                                 <div class="file-upload-zone rounded-3xl p-6 text-center relative overflow-hidden h-40 flex flex-col items-center justify-center cursor-pointer group">
                                     <input type="file" id="upload-image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10">
                                     <div id="image-preview-container" class="absolute inset-0 hidden"><img id="image-preview" src="" class="w-full h-full object-cover opacity-30"></div>
                                     <div class="relative z-0 flex flex-col items-center pointer-events-none">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-zinc-500 mb-2 group-hover:text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                                        <span class="text-xs font-bold text-zinc-400" id="image-filename">Select Photo</span>
+                                        <span class="text-xs font-bold text-zinc-400" id="image-filename">เลือกไฟล์รูปภาพ</span>
                                     </div>
                                 </div>
                             </div>
                             <div>
-                                <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Resource File</label>
+                                <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">ไฟล์แนบ (ทรัพยากร)</label>
                                 <div class="file-upload-zone rounded-3xl p-6 text-center relative h-40 flex flex-col items-center justify-center cursor-pointer group">
                                     <input type="file" id="upload-file" class="absolute inset-0 opacity-0 cursor-pointer z-10">
                                     <div class="relative z-0 flex flex-col items-center pointer-events-none">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-zinc-500 mb-2 group-hover:text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                        <span class="text-xs font-bold text-zinc-400" id="file-filename">Select any file type</span>
+                                        <span class="text-xs font-bold text-zinc-400" id="file-filename">เลือกไฟล์ทุกประเภท</span>
                                     </div>
                                 </div>
                             </div>
-                            <button onclick="handleDeployPost()" id="btn-deploy" class="w-full py-6 bg-emerald-500 text-black rounded-3xl font-black uppercase tracking-widest hover:bg-emerald-400 transition-all">
-                                <span id="deploy-text">Deploy Signal</span>
+                            <button onclick="handleDeployPost()" id="btn-deploy" class="w-full py-6 bg-emerald-500 text-black rounded-3xl font-black uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20">
+                                <span id="deploy-text">ส่งสัญญาณประกาศ</span>
                             </button>
                         </div>
                     </div>
@@ -144,7 +144,7 @@
 
     <!-- Modal Container -->
     <div id="modal-container" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 modal-bg">
-        <div class="glass max-w-xl w-full rounded-[3rem] p-12 border-white/10 shadow-2xl relative">
+        <div class="glass max-w-xl w-full rounded-[3rem] p-12 border-white/10 shadow-2xl relative animate-fade-in">
             <button onclick="closeModal()" class="absolute top-8 right-8 text-zinc-500 hover:text-white transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
@@ -160,52 +160,72 @@
             const params = new URLSearchParams(window.location.search);
             const token = params.get('t');
 
-            // 1. ตรวจสอบ Token เบื้องต้น
-            if (!token || token.length < 20) {
-                return; // ปล่อยให้แสดงหน้า Fake 404
+            // 1. ตรวจสอบ Token เบื้องต้น (ความลับของแอดมิน)
+            if (!token || token.length < 10) {
+                return; // แสดงหน้า Fake 404 ต่อไป
             }
 
-            // 2. ตรวจสอบ Session
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) {
-                window.location.href = 'index.html';
-                return;
+            try {
+                // 2. ตรวจสอบ Session ปัจจุบัน
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (!session) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // 3. ดึงข้อมูล Profile และตรวจสอบสิทธิ์ Admin จริงใน DB
+                const { data: profile, error } = await supabaseClient.from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (error || !profile || !profile.is_admin) {
+                    // ถ้าไม่ใช่แอดมินแต่พยายามเข้า: สั่งแบนและเตะออก
+                    await supabaseClient.from('profiles').update({ 
+                        is_banned: true, 
+                        ban_reason: 'Unauthorized Admin Path Breach Attempt' 
+                    }).eq('id', session.user.id);
+                    await supabaseClient.auth.signOut();
+                    window.location.href = 'index.html?error=security_breach';
+                    return;
+                }
+
+                // ผ่านการตรวจสอบสิทธิ์ครบถ้วน -> ปลดล็อก UI
+                currentAdmin = profile;
+                document.title = "NEBULA COMMAND CENTER";
+                document.getElementById('main-body').classList.remove('fake-404-body');
+                document.getElementById('fake-404').classList.add('hidden');
+                document.getElementById('admin-ui').style.display = 'flex';
+                document.getElementById('admin-name').innerText = profile.username || "Commander";
+                
+                // เริ่มต้นด้วยหน้าจัดการผู้ใช้
+                switchTab('users');
+            } catch (err) {
+                console.error("Security violation:", err);
             }
-
-            // 3. ตรวจสอบสิทธิ์ Admin
-            const { data: profile, error } = await supabaseClient.from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-
-            if (error || !profile || !profile.is_admin) {
-                // ถ้าแอบเข้าแต่ไม่ใช่แอดมิน -> แบนทันที!
-                await supabaseClient.from('profiles').update({ is_banned: true, ban_reason: 'Unauthorized Admin Access Attempt' }).eq('id', session.user.id);
-                await supabaseClient.auth.signOut();
-                window.location.href = 'index.html?error=breach_detected';
-                return;
-            }
-
-            // ผ่านการตรวจสอบ -> แสดง UI จริง
-            currentAdmin = profile;
-            document.title = "NEBULA COMMAND";
-            document.getElementById('main-body').classList.remove('fake-404-body');
-            document.getElementById('fake-404').classList.add('hidden');
-            document.getElementById('admin-ui').style.display = 'flex';
-            document.getElementById('admin-name').innerText = profile.username;
-            
-            loadUsers();
         }
 
         function switchTab(tab) {
             const tabs = ['users', 'posts', 'broadcast'];
-            const titles = { users: 'Security Center', posts: 'Content Intelligence', broadcast: 'Signal Deployment' };
-            const descs = { users: 'User & System Access Control', posts: 'Managing Transmissions & Engagement', broadcast: 'High-Priority Content Creation' };
+            const titles = { 
+                users: 'Security Center', 
+                posts: 'Content Intelligence', 
+                broadcast: 'Signal Deployment' 
+            };
+            const descs = { 
+                users: 'การควบคุมสิทธิ์เข้าถึงและจัดการบัญชีผู้ใช้ในระบบ', 
+                posts: 'ตรวจสอบเนื้อหาและการมีส่วนร่วมของสัญญาณทั้งหมด', 
+                broadcast: 'สร้างและส่งสัญญาณประกาศลำดับความสำคัญสูง' 
+            };
             
             tabs.forEach(t => {
-                document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tab);
-                document.getElementById(`btn-${t}`).classList.toggle('sidebar-active', t === tab);
-                document.getElementById(`btn-${t}`).classList.toggle('opacity-50', t !== tab);
+                const section = document.getElementById(`section-${t}`);
+                const btn = document.getElementById(`btn-${t}`);
+                if (section) section.classList.toggle('hidden', t !== tab);
+                if (btn) {
+                    btn.classList.toggle('sidebar-active', t === tab);
+                    btn.classList.toggle('opacity-50', t !== tab);
+                }
             });
 
             document.getElementById('tab-title').innerText = titles[tab];
@@ -215,28 +235,30 @@
             if (tab === 'posts') loadPosts();
         }
 
-        // --- USER FUNCTIONS (แบบที่คุณต้องการ) ---
+        // --- USER MANAGEMENT ---
         async function loadUsers() {
-            const { data: users } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
+            const { data: users, error } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
             const container = document.getElementById('section-users');
+            if (error) return container.innerHTML = '<p class="text-red-500">Error fetching users</p>';
+            
             container.innerHTML = users.map(u => `
-                <div class="glass p-6 rounded-[2rem] border-white/5 space-y-4 relative ${u.is_banned ? 'opacity-50 grayscale' : ''}">
+                <div class="glass p-6 rounded-[2rem] border-white/5 space-y-4 relative ${u.is_banned ? 'opacity-40 grayscale' : ''} transition-all hover:border-white/20">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/10 overflow-hidden">
-                            <img src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.username}" class="w-full h-full">
+                        <div class="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/10 overflow-hidden shadow-inner">
+                            <img src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.username}" class="w-full h-full object-cover">
                         </div>
-                        <div class="flex-1">
-                            <div class="font-bold text-white flex items-center gap-2">
+                        <div class="flex-1 min-w-0">
+                            <div class="font-bold text-white flex items-center gap-2 truncate">
                                 ${u.username}
-                                ${u.is_admin ? '<span class="text-[8px] bg-emerald-500 text-black px-1 rounded font-black">ADM</span>' : ''}
+                                ${u.is_admin ? '<span class="text-[8px] bg-emerald-500 text-black px-1.5 py-0.5 rounded font-black">ADM</span>' : ''}
                             </div>
-                            <div class="text-[10px] text-zinc-600 truncate max-w-[120px] font-mono">${u.id}</div>
+                            <div class="text-[9px] text-zinc-500 truncate font-mono">${u.id}</div>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="editUserModal('${u.id}')" class="text-[10px] py-2 bg-white/5 hover:bg-white/10 rounded-xl font-bold uppercase tracking-widest transition-all">Edit Clearance</button>
-                        <button onclick="toggleBan('${u.id}', ${u.is_banned})" class="text-[10px] py-2 ${u.is_banned ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'} rounded-xl font-bold uppercase tracking-widest transition-all">
-                            ${u.is_banned ? 'Restore Access' : 'Terminate Link'}
+                        <button onclick="editUserModal('${u.id}')" class="text-[10px] py-2.5 bg-white/5 hover:bg-white/10 rounded-xl font-bold uppercase tracking-widest transition-all">แก้ไขสิทธิ์</button>
+                        <button onclick="toggleBan('${u.id}', ${u.is_banned})" class="text-[10px] py-2.5 ${u.is_banned ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'} rounded-xl font-bold uppercase tracking-widest transition-all">
+                            ${u.is_banned ? 'ปลดแบน' : 'ระงับสัญญาณ'}
                         </button>
                     </div>
                 </div>
@@ -247,17 +269,17 @@
             const { data: u } = await supabaseClient.from('profiles').select('*').eq('id', uid).single();
             const content = document.getElementById('modal-content');
             content.innerHTML = `
-                <h2 class="text-3xl font-black italic uppercase mb-8">Override User Profile</h2>
+                <h2 class="text-3xl font-black italic uppercase mb-8">Override User Clearance</h2>
                 <div class="space-y-6">
                     <div>
                         <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2">Username Identifier</label>
                         <input type="text" id="m-username" value="${u.username}" class="w-full rounded-2xl p-5 text-sm">
                     </div>
                     <div class="flex items-center gap-4 p-5 glass rounded-2xl border-white/10">
-                        <input type="checkbox" id="m-admin" ${u.is_admin ? 'checked' : ''} class="w-6 h-6 accent-emerald-500">
-                        <label for="m-admin" class="text-sm font-bold">Administrative Clearance (is_admin)</label>
+                        <input type="checkbox" id="m-admin" ${u.is_admin ? 'checked' : ''} class="w-6 h-6 rounded-lg accent-emerald-500 bg-black border-white/10 cursor-pointer">
+                        <label for="m-admin" class="text-sm font-bold cursor-pointer">Administrative Clearance (is_admin)</label>
                     </div>
-                    <button onclick="updateUser('${u.id}')" class="w-full py-5 bg-emerald-500 text-black rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-400 transition-all">Apply Overrides</button>
+                    <button onclick="updateUser('${u.id}')" class="w-full py-5 bg-emerald-500 text-black rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-500/10">บันทึกการเปลี่ยนแปลง</button>
                 </div>
             `;
             document.getElementById('modal-container').classList.remove('hidden');
@@ -266,85 +288,90 @@
         async function updateUser(uid) {
             const username = document.getElementById('m-username').value;
             const is_admin = document.getElementById('m-admin').checked;
-            await supabaseClient.from('profiles').update({ username, is_admin }).eq('id', uid);
-            closeModal();
-            loadUsers();
-        }
-
-        async function toggleBan(uid, current) {
-            if (confirm(`Execute Terminal ${current ? 'Restore' : 'Termination'}?`)) {
-                await supabaseClient.from('profiles').update({ is_banned: !current, ban_reason: current ? null : 'Manual Admin Override' }).eq('id', uid);
+            const { error } = await supabaseClient.from('profiles').update({ username, is_admin }).eq('id', uid);
+            if(!error) {
+                closeModal();
                 loadUsers();
             }
         }
 
-        // --- POST FUNCTIONS (จากเวอร์ชั่นที่สมบูรณ์) ---
-        async function loadPosts() {
-            const { data: posts } = await supabaseClient.from('posts').select(`*, profiles(username), likes(count), bookmarks(count)`).order('created_at', { ascending: false });
-            const container = document.getElementById('section-posts');
-            container.innerHTML = `
-                <table class="w-full text-left">
-                    <thead class="text-[10px] uppercase text-zinc-500 border-b border-white/5">
-                        <tr><th class="p-8">Content</th><th class="p-8 text-center">Engagement</th><th class="p-8 text-right">Actions</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-white/5">
-                        ${posts.map(p => `
-                            <tr class="hover:bg-white/[0.02] transition-colors">
-                                <td class="p-8">
-                                    <div class="font-bold text-sm mb-1 line-clamp-1">${p.title || p.content.substring(0, 30)}</div>
-                                    <div class="text-[10px] text-zinc-500 italic">by @${p.profiles?.username} • ${new Date(p.created_at).toLocaleDateString()}</div>
-                                </td>
-                                <td class="p-8">
-                                    <div class="flex justify-center gap-6">
-                                        <button onclick="viewEngagement('${p.id}', 'likes')" class="text-center group">
-                                            <div class="text-xs font-black text-emerald-500 group-hover:scale-125 transition-all">${p.likes?.[0]?.count || 0}</div>
-                                            <div class="text-[8px] font-bold text-zinc-600 uppercase">Likes</div>
-                                        </button>
-                                        <button onclick="viewEngagement('${p.id}', 'bookmarks')" class="text-center group">
-                                            <div class="text-xs font-black text-blue-500 group-hover:scale-125 transition-all">${p.bookmarks?.[0]?.count || 0}</div>
-                                            <div class="text-[8px] font-bold text-zinc-600 uppercase">Saves</div>
-                                        </button>
-                                    </div>
-                                </td>
-                                <td class="p-8 text-right">
-                                    <div class="flex justify-end gap-2">
-                                        <button onclick="editPostModal('${p.id}')" class="p-3 glass rounded-xl text-zinc-400 hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-                                        <button onclick="deletePost('${p.id}')" class="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-black"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-                                    </div>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
+        async function toggleBan(uid, current) {
+            const action = current ? 'ปลดระงับ' : 'ระงับ';
+            if (confirm(`ยืนยันการ${action}การเชื่อมต่อของสมาชิกรายนี้?`)) {
+                await supabaseClient.from('profiles').update({ 
+                    is_banned: !current, 
+                    ban_reason: current ? null : 'Manual Admin Termination' 
+                }).eq('id', uid);
+                loadUsers();
+            }
         }
 
-        async function viewEngagement(pid, type) {
-            const { data } = await supabaseClient.from(type).select('profiles(username)').eq('post_id', pid);
-            const content = document.getElementById('modal-content');
-            content.innerHTML = `
-                <h2 class="text-2xl font-black italic uppercase mb-6">${type.toUpperCase()} Signals</h2>
-                <div class="space-y-2 max-h-72 overflow-y-auto custom-scrollbar pr-4">
-                    ${data.length > 0 ? data.map(i => `
-                        <div class="p-4 glass rounded-2xl flex items-center gap-3 border-white/5">
-                            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-[10px] font-bold">@</div>
-                            <span class="text-sm font-bold text-zinc-300">${i.profiles.username}</span>
-                        </div>
-                    `).join('') : '<div class="text-zinc-600 text-center py-10 italic">No signals detected.</div>'}
+        // --- POST MANAGEMENT ---
+        async function loadPosts() {
+            const { data: posts } = await supabaseClient.from('posts').select(`
+                *, 
+                profiles(username), 
+                likes(count), 
+                comments(count)
+            `).order('created_at', { ascending: false });
+            
+            const container = document.getElementById('section-posts');
+            container.innerHTML = `
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="text-[10px] uppercase text-zinc-500 border-b border-white/5 bg-white/[0.01]">
+                            <tr>
+                                <th class="p-8">หัวข้อ/เนื้อหา</th>
+                                <th class="p-8 text-center">การมีส่วนร่วม</th>
+                                <th class="p-8 text-right">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            ${posts.map(p => `
+                                <tr class="hover:bg-white/[0.02] transition-colors">
+                                    <td class="p-8">
+                                        <div class="font-bold text-sm mb-1 line-clamp-1">${p.title || p.content.substring(0, 40) + '...'}</div>
+                                        <div class="text-[10px] text-zinc-500 italic">โดย @${p.profiles?.username || 'Unknown'} • ${new Date(p.created_at).toLocaleDateString()}</div>
+                                    </td>
+                                    <td class="p-8">
+                                        <div class="flex justify-center gap-6">
+                                            <div class="text-center">
+                                                <div class="text-xs font-black text-emerald-500">${p.likes?.[0]?.count || 0}</div>
+                                                <div class="text-[8px] font-bold text-zinc-600 uppercase">Likes</div>
+                                            </div>
+                                            <div class="text-center">
+                                                <div class="text-xs font-black text-blue-500">${p.comments?.[0]?.count || 0}</div>
+                                                <div class="text-[8px] font-bold text-zinc-600 uppercase">Comments</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="p-8 text-right">
+                                        <div class="flex justify-end gap-2">
+                                            <button onclick="editPostModal('${p.id}')" class="p-3 glass rounded-xl text-zinc-400 hover:text-white hover:border-white/20 transition-all">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            </button>
+                                            <button onclick="deletePost('${p.id}')" class="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-black transition-all">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
                 </div>
             `;
-            document.getElementById('modal-container').classList.remove('hidden');
         }
 
         async function editPostModal(pid) {
             const { data: p } = await supabaseClient.from('posts').select('*').eq('id', pid).single();
             const content = document.getElementById('modal-content');
             content.innerHTML = `
-                <h2 class="text-2xl font-black italic uppercase mb-6">Modify Transmission</h2>
+                <h2 class="text-2xl font-black italic uppercase mb-6 text-emerald-400">แก้ไขข้อมูลโพสต์</h2>
                 <div class="space-y-4">
-                    <input type="text" id="edit-title" value="${p.title || ''}" class="w-full rounded-2xl p-4 text-sm" placeholder="Title">
+                    <input type="text" id="edit-title" value="${p.title || ''}" class="w-full rounded-2xl p-4 text-sm" placeholder="หัวข้อโพสต์">
                     <textarea id="edit-content" class="w-full rounded-2xl p-4 text-sm min-h-[150px]">${p.content}</textarea>
-                    <button onclick="savePost('${p.id}')" class="w-full py-4 bg-emerald-500 text-black rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-400">Update Signal</button>
+                    <button onclick="savePost('${p.id}')" class="w-full py-4 bg-emerald-500 text-black rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-400 shadow-lg">อัปเดตข้อมูล</button>
                 </div>
             `;
             document.getElementById('modal-container').classList.remove('hidden');
@@ -359,13 +386,13 @@
         }
 
         async function deletePost(pid) {
-            if(confirm("Permanently delete signal?")) {
+            if(confirm("คำเตือน: การลบโพสต์นี้ไม่สามารถย้อนกลับได้ ยืนยันการลบ?")) {
                 await supabaseClient.from('posts').delete().eq('id', pid);
                 loadPosts();
             }
         }
 
-        // --- BROADCAST LOGIC (Upload & Deploy) ---
+        // --- BROADCAST LOGIC ---
         async function uploadToStorage(file, folder) {
             if (!file) return null;
             const fileExt = file.name.split('.').pop();
@@ -385,15 +412,16 @@
             const imageFile = document.getElementById('upload-image').files[0];
             const attachmentFile = document.getElementById('upload-file').files[0];
 
-            if (!content) return alert("Content is required.");
+            if (!content) return alert("กรุณากรอกเนื้อหาหลักก่อนส่งประกาศ");
+            
             btn.disabled = true;
-            btn.innerText = "DEPLOYING...";
+            btn.innerHTML = '<span class="animate-pulse">กำลังส่งสัญญาณ...</span>';
 
             let imgUrl = await uploadToStorage(imageFile, 'images');
             let fileUrl = await uploadToStorage(attachmentFile, 'files');
 
             const { data: post, error } = await supabaseClient.from('posts').insert([{
-                title: title || "New Transmission",
+                title: title || "Nebula Transmission",
                 content: content,
                 image_url: imgUrl,
                 image_caption: caption || null,
@@ -409,12 +437,18 @@
                 }]);
             }
 
-            alert(error ? "Deploy Failed" : "Deployed Successfully");
-            window.location.reload();
+            if (error) {
+                alert("เกิดข้อผิดพลาดในการส่งประกาศ: " + error.message);
+                btn.disabled = false;
+                btn.innerText = "ลองส่งอีกครั้ง";
+            } else {
+                alert("ส่งสัญญาณประกาศเรียบร้อยแล้ว!");
+                window.location.reload();
+            }
         }
 
-        // --- File Previews ---
-        document.getElementById('upload-image').addEventListener('change', e => {
+        // --- Previews & Helpers ---
+        document.getElementById('upload-image')?.addEventListener('change', e => {
             const file = e.target.files[0];
             if (file) {
                 document.getElementById('image-filename').innerText = file.name;
@@ -427,14 +461,17 @@
             }
         });
 
-        document.getElementById('upload-file').addEventListener('change', e => {
-            if (e.target.files[0]) document.getElementById('file-filename').innerText = `READY: ${e.target.files[0].name}`;
+        document.getElementById('upload-file')?.addEventListener('change', e => {
+            if (e.target.files[0]) document.getElementById('file-filename').innerText = `พร้อมส่ง: ${e.target.files[0].name}`;
         });
 
         function closeModal() { document.getElementById('modal-container').classList.add('hidden'); }
-        async function handleLogout() { await supabaseClient.auth.signOut(); window.location.href = 'index.html'; }
+        async function handleLogout() { 
+            await supabaseClient.auth.signOut(); 
+            window.location.href = 'index.html'; 
+        }
 
-        // Start
+        // Run Security Check on load
         securityCheck();
     </script>
 </body>
