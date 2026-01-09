@@ -3,100 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 Not Found</title>
+    <title>NEBULA - Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;700&display=swap');
-        
-        /* Stealth Mode: Fake 404 Styles */
-        .fake-404-body { background-color: #fff; color: #000; font-family: "Segoe UI", Tahoma, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .error-container { max-width: 600px; padding: 20px; }
-        .error-code { font-size: 24px; font-weight: 500; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
-
-        /* Real Admin Styles */
-        .admin-layout { font-family: 'Anuphan', sans-serif; background: #050505; color: #fff; display: none; }
+        body { font-family: 'Anuphan', sans-serif; background: #050505; color: #fff; }
         .glass { background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
-        .sidebar-active { background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; color: #ef4444; }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        input, textarea { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
-        .modal-bg { background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); }
+        .sidebar-active { background: rgba(255,255,255,0.1); border-left: 4px solid #10b981; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        input, textarea, select { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
+        input:focus, textarea:focus { border-color: #10b981 !important; outline: none; }
+        .file-upload-zone { border: 2px dashed rgba(255,255,255,0.1); transition: all 0.3s ease; }
+        .file-upload-zone:hover { border-color: #10b981; background: rgba(16, 185, 129, 0.05); }
+        .modal-bg { background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body id="main-body" class="fake-404-body">
+<body class="min-h-screen flex">
 
-    <!-- FAKE 404 INTERFACE -->
-    <div id="fake-404" class="error-container">
-        <div class="error-code">404 Not Found</div>
-        <p>The requested URL /admin.html was not found on this server.</p>
-        <hr>
-        <address>Apache/2.4.41 (Ubuntu) Server at nebula-system.io Port 443</address>
-    </div>
+    <!-- Sidebar -->
+    <aside class="w-64 glass border-r border-white/5 h-screen sticky top-0 flex flex-col p-6">
+        <div class="text-2xl font-black italic mb-10 tracking-tighter">NEBULA <span class="text-[10px] bg-emerald-500 text-black px-2 py-0.5 rounded ml-1 not-italic font-bold">ADM</span></div>
+        
+        <nav class="flex-1 space-y-2">
+            <button onclick="switchTab('users')" id="btn-users" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all flex items-center gap-3 sidebar-active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Users & Security
+            </button>
+            <button onclick="switchTab('posts')" id="btn-posts" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all flex items-center gap-3 opacity-50 hover:opacity-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                Manage Posts
+            </button>
+            <button onclick="switchTab('broadcast')" id="btn-broadcast" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all flex items-center gap-3 opacity-50 hover:opacity-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                Create New Post
+            </button>
+        </nav>
 
-    <!-- REAL ADMIN INTERFACE -->
-    <div id="admin-ui" class="admin-layout min-h-screen w-full flex">
-        <!-- Sidebar -->
-        <aside class="w-72 glass border-r border-white/5 h-screen sticky top-0 flex flex-col p-8">
-            <div class="text-2xl font-black italic mb-12 tracking-tighter text-red-500 flex items-center gap-2">
-                <div class="w-8 h-8 bg-red-500 rounded flex items-center justify-center text-black not-italic text-sm">N</div>
-                NEBULA <span class="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded not-italic font-bold">CORE</span>
+        <a href="index.html" class="p-4 rounded-2xl text-sm font-bold text-zinc-500 hover:text-white transition-all flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Back to Site
+        </a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-10 overflow-y-auto">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 id="tab-title" class="text-4xl font-black uppercase italic tracking-tighter">Security Center</h1>
+                <p id="tab-desc" class="text-zinc-500 text-xs tracking-widest uppercase mt-1">User & System Access Control</p>
             </div>
-            
-            <nav class="flex-1 space-y-3">
-                <button onclick="switchTab('users')" id="btn-users" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all sidebar-active flex items-center gap-3">
-                    Security & Users
-                </button>
-                <button onclick="switchTab('posts')" id="btn-posts" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all opacity-50 hover:opacity-100 flex items-center gap-3">
-                    Content Intelligence
-                </button>
-                <button onclick="switchTab('logs')" id="btn-logs" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all opacity-50 hover:opacity-100 flex items-center gap-3">
-                    Security Logs
-                </button>
-            </nav>
-
-            <div class="pt-6 border-t border-white/5">
-                <div id="admin-profile" class="mb-6 px-4">
-                    <div class="text-xs font-bold text-red-500 uppercase tracking-widest">Active Admin</div>
-                    <div id="admin-display-name" class="text-sm font-bold italic truncate">Commander</div>
-                </div>
-                <button onclick="handleLogout()" class="w-full p-4 rounded-2xl bg-white/5 text-xs font-bold text-zinc-500 hover:text-white hover:bg-red-500/20 transition-all">
-                    Terminals Logout
-                </button>
+            <div id="admin-info" class="text-right">
+                <div class="text-sm font-bold italic" id="admin-name">Admin Name</div>
+                <div class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Master Access</div>
             </div>
-        </aside>
+        </header>
 
-        <!-- Main Workspace -->
-        <main class="flex-1 p-12 overflow-y-auto custom-scrollbar">
-            <header class="flex justify-between items-start mb-12">
-                <div>
-                    <h1 id="tab-title" class="text-5xl font-black uppercase italic tracking-tighter text-white">Security Center</h1>
-                    <p id="tab-desc" class="text-zinc-500 text-xs tracking-[0.3em] uppercase mt-2">Level 5 Clearance Required</p>
-                </div>
-                <div class="flex gap-4">
-                    <div class="glass px-6 py-3 rounded-2xl text-center">
-                        <div id="stat-users" class="text-xl font-black">0</div>
-                        <div class="text-[8px] uppercase text-zinc-500 font-bold">Total Explorers</div>
+        <!-- User List Section -->
+        <section id="section-users" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="user-list-container"></div>
+        </section>
+
+        <!-- Posts Management Section -->
+        <section id="section-posts" class="hidden space-y-4">
+            <div class="glass overflow-hidden rounded-[2rem] border-white/5" id="post-list-container"></div>
+        </section>
+
+        <!-- Create Post Section -->
+        <section id="section-broadcast" class="hidden max-w-4xl mx-auto pb-20">
+            <!-- Form content (unchanged from previous version) -->
+            <div class="glass p-10 rounded-[3rem] border-white/10 shadow-2xl">
+                <h3 class="text-xl font-bold mb-8 italic uppercase flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center not-italic">🚀</span>
+                    Compose High-Priority Post
+                </h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Headline</label>
+                            <input type="text" id="post-title" placeholder="Topic name..." class="w-full rounded-2xl p-4 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Main Message</label>
+                            <textarea id="post-content" placeholder="Type your announcement here..." class="w-full rounded-2xl p-4 text-sm min-h-[180px]"></textarea>
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Image Caption</label>
+                            <input type="text" id="post-image-caption" placeholder="Visual description..." class="w-full rounded-2xl p-4 text-sm">
+                        </div>
                     </div>
-                    <div class="glass px-6 py-3 rounded-2xl text-center border-red-500/20">
-                        <div id="stat-banned" class="text-xl font-black text-red-500">0</div>
-                        <div class="text-[8px] uppercase text-zinc-500 font-bold">Banned Terminals</div>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Visual Asset</label>
+                            <div class="file-upload-zone rounded-3xl p-6 text-center relative overflow-hidden h-40 flex flex-col items-center justify-center cursor-pointer group">
+                                <input type="file" id="upload-image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10">
+                                <div id="image-preview-container" class="absolute inset-0 hidden"><img id="image-preview" src="" class="w-full h-full object-cover opacity-30"></div>
+                                <div class="relative z-0 flex flex-col items-center pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-zinc-500 mb-2 group-hover:text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                    <span class="text-xs font-bold text-zinc-400" id="image-filename">Select Photo</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Downloadable Resource</label>
+                            <div class="file-upload-zone rounded-3xl p-6 text-center relative h-40 flex flex-col items-center justify-center cursor-pointer group">
+                                <input type="file" id="upload-file" class="absolute inset-0 opacity-0 cursor-pointer z-10">
+                                <div class="relative z-0 flex flex-col items-center pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-zinc-500 mb-2 group-hover:text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    <span class="text-xs font-bold text-zinc-400" id="file-filename">Select any file type</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="handleDeployPost()" id="btn-deploy" class="w-full py-6 bg-emerald-500 text-black rounded-3xl font-black uppercase tracking-widest hover:bg-emerald-400 transition-all">
+                            <span id="deploy-text">Deploy Signal</span>
+                        </button>
                     </div>
                 </div>
-            </header>
+            </div>
+        </section>
+    </main>
 
-            <!-- Sections -->
-            <section id="section-users" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in"></section>
-            <section id="section-posts" class="hidden glass rounded-[2.5rem] overflow-hidden border-white/5 animate-fade-in"></section>
-            <section id="section-logs" class="hidden glass rounded-[2.5rem] overflow-hidden border-white/5 animate-fade-in"></section>
-        </main>
-    </div>
-
-    <!-- Global Modal -->
+    <!-- Modal for Editing/Details -->
     <div id="modal-container" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 modal-bg">
-        <div class="glass max-w-xl w-full rounded-[3rem] p-12 border-white/10 shadow-2xl relative">
-            <button onclick="closeModal()" class="absolute top-8 right-8 text-zinc-500 hover:text-white transition-colors">
+        <div class="glass max-w-lg w-full rounded-[3rem] p-10 border-white/10 shadow-2xl relative">
+            <button onclick="closeModal()" class="absolute top-6 right-6 text-zinc-500 hover:text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
             <div id="modal-content"></div>
@@ -104,247 +136,277 @@
     </div>
 
     <script>
-        // --- Security & Auth Check ---
-        async function securityCheck() {
+        let currentAdmin = null;
+
+        // --- Core Functions ---
+
+        async function checkAdmin() {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            
-            if (!session) return triggerAutoBan("Guest", "N/A");
+            if (!session) { window.location.href = 'index.html'; return; }
 
-            const { data: profile, error } = await supabaseClient.from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
+            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
+            if (!profile || !profile.is_admin) { window.location.href = 'index.html'; return; }
 
-            if (error || !profile || !profile.is_admin) {
-                return triggerAutoBan(session.user.id, session.user.email);
-            }
-
-            // If Admin, show UI
-            document.title = "NEBULA COMMAND";
-            document.getElementById('main-body').classList.remove('fake-404-body');
-            document.getElementById('fake-404').classList.add('hidden');
-            document.getElementById('admin-ui').style.display = 'flex';
-            document.getElementById('admin-display-name').innerText = profile.username;
-            
-            initDashboard();
-        }
-
-        async function triggerAutoBan(userId, email) {
-            console.error("INTRUSION DETECTED. INITIALIZING AUTO-BAN PROTOCOL.");
-            
-            let ip = "unknown";
-            try {
-                const res = await fetch('https://api.ipify.org?format=json');
-                const data = await res.json();
-                ip = data.ip;
-            } catch(e) {}
-
-            // Log the event
-            await supabaseClient.from('security_logs').insert([{
-                user_id: userId === "Guest" ? null : userId,
-                event_type: 'ADMIN_UNAUTHORIZED_ACCESS',
-                ip_address: ip,
-                metadata: { email, user_agent: navigator.userAgent, timestamp: new Date().toISOString() }
-            }]);
-
-            // Ban Account
-            if (userId !== "Guest") {
-                await supabaseClient.from('profiles').update({ 
-                    is_banned: true, 
-                    ban_reason: 'Automated AI Ban: Attempted Admin Gateway Breach' 
-                }).eq('id', userId);
-            }
-
-            await supabaseClient.auth.signOut();
-            // User remains stuck on the fake 404 page
-        }
-
-        // --- Dashboard Logic ---
-        function initDashboard() {
-            loadStats();
+            currentAdmin = profile;
+            document.getElementById('admin-name').innerText = profile.username;
             loadUsers();
         }
 
-        async function loadStats() {
-            const { count: totalUsers } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
-            const { count: bannedUsers } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).eq('is_banned', true);
-            
-            document.getElementById('stat-users').innerText = totalUsers || 0;
-            document.getElementById('stat-banned').innerText = bannedUsers || 0;
-        }
-
         function switchTab(tab) {
-            const tabs = ['users', 'posts', 'logs'];
-            const titles = { users: 'Security Center', posts: 'Content Intel', logs: 'Terminal Logs' };
-            
-            tabs.forEach(t => {
-                document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tab);
-                document.getElementById(`btn-${t}`).classList.toggle('sidebar-active', t === tab);
-                document.getElementById(`btn-${t}`).classList.toggle('opacity-50', t !== tab);
+            ['users', 'posts', 'broadcast'].forEach(s => {
+                document.getElementById(`section-${s}`).classList.toggle('hidden', s !== tab);
+                document.getElementById(`btn-${s}`).classList.toggle('sidebar-active', s === tab);
+                document.getElementById(`btn-${s}`).classList.toggle('opacity-50', s !== tab);
             });
-
-            document.getElementById('tab-title').innerText = titles[tab];
             if (tab === 'users') loadUsers();
             if (tab === 'posts') loadPosts();
-            if (tab === 'logs') loadLogs();
         }
 
-        // --- User Actions ---
+        function closeModal() {
+            document.getElementById('modal-container').classList.add('hidden');
+        }
+
+        // --- User Management ---
+
         async function loadUsers() {
             const { data: users } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
-            const container = document.getElementById('section-users');
-            container.innerHTML = users.map(u => `
-                <div class="glass p-8 rounded-[2.5rem] border-white/5 relative group transition-all hover:border-red-500/30 ${u.is_banned ? 'grayscale opacity-50' : ''}">
-                    <div class="flex items-center gap-5 mb-6">
-                        <div class="w-14 h-14 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center font-black text-xl text-red-500">
-                            ${u.username[0].toUpperCase()}
+            document.getElementById('user-list-container').innerHTML = users.map(u => `
+                <div class="glass p-6 rounded-[2rem] border-white/5 space-y-4 relative ${u.is_banned ? 'opacity-50 grayscale' : ''}">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/10 overflow-hidden">
+                             <img src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.username}" class="w-full h-full">
                         </div>
                         <div class="flex-1">
-                            <div class="font-black text-lg flex items-center gap-2">
+                            <div class="font-bold text-white flex items-center gap-2">
                                 ${u.username}
-                                ${u.is_admin ? '<span class="bg-red-500 text-black text-[8px] px-1.5 rounded font-black">ROOT</span>' : ''}
+                                ${u.is_admin ? '<span class="text-[8px] bg-emerald-500 text-black px-1 rounded font-black">ADM</span>' : ''}
+                                ${u.is_banned ? '<span class="text-[8px] bg-red-500 text-white px-1 rounded font-black uppercase">Banned</span>' : ''}
                             </div>
-                            <div class="text-[10px] text-zinc-600 font-mono truncate max-w-[150px]">${u.id}</div>
+                            <div class="text-[10px] text-zinc-600 truncate max-w-[120px]">${u.id}</div>
                         </div>
                     </div>
                     
-                    <div class="space-y-2">
-                        <button onclick="editUserModal('${u.id}')" class="w-full py-3 rounded-xl bg-white/5 text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all">Edit Clearance</button>
-                        <button onclick="toggleBan('${u.id}', ${u.is_banned})" class="w-full py-3 rounded-xl ${u.is_banned ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'} text-[10px] font-bold uppercase tracking-widest transition-all">
-                            ${u.is_banned ? 'Restore Access' : 'Terminate Link'}
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="editUserModal('${u.id}')" class="text-[10px] py-2 bg-white/5 hover:bg-white/10 rounded-xl font-bold uppercase tracking-widest transition-all">Edit Profile</button>
+                        <button onclick="toggleBan('${u.id}', ${u.is_banned})" class="text-[10px] py-2 ${u.is_banned ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'} rounded-xl font-bold uppercase tracking-widest transition-all">
+                            ${u.is_banned ? 'Unban' : 'Ban User'}
                         </button>
                     </div>
                 </div>
             `).join('');
         }
 
-        async function editUserModal(uid) {
-            const { data: u } = await supabaseClient.from('profiles').select('*').eq('id', uid).single();
+        async function editUserModal(userId) {
+            const { data: user } = await supabaseClient.from('profiles').select('*').eq('id', userId).single();
             const content = document.getElementById('modal-content');
             content.innerHTML = `
-                <h2 class="text-3xl font-black italic uppercase mb-8">Override User Profile</h2>
-                <div class="space-y-6">
+                <h2 class="text-2xl font-black italic uppercase mb-6">Edit Explorer Profile</h2>
+                <div class="space-y-4">
                     <div>
-                        <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2">Username Identifier</label>
-                        <input type="text" id="m-username" value="${u.username}" class="w-full rounded-2xl p-5 text-sm">
+                        <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2">Username</label>
+                        <input type="text" id="edit-username" value="${user.username}" class="w-full rounded-2xl p-4 text-sm">
                     </div>
-                    <div class="flex items-center gap-4 p-5 glass rounded-2xl border-white/10">
-                        <input type="checkbox" id="m-admin" ${u.is_admin ? 'checked' : ''} class="w-6 h-6 accent-red-500">
-                        <label for="m-admin" class="text-sm font-bold">Administrative Clearance (is_admin)</label>
+                    <div class="flex items-center gap-4 p-4 glass rounded-2xl border-white/5">
+                        <input type="checkbox" id="edit-is-admin" ${user.is_admin ? 'checked' : ''} class="w-5 h-5 accent-emerald-500">
+                        <label for="edit-is-admin" class="text-sm font-bold">Grant Administrative Privileges</label>
                     </div>
-                    <button onclick="updateUser('${u.id}')" class="w-full py-5 bg-red-500 text-black rounded-2xl font-black uppercase tracking-widest hover:bg-red-400 transition-all">Apply Overrides</button>
+                    <button onclick="saveUser('${user.id}')" class="w-full py-4 bg-white text-black rounded-2xl font-black uppercase tracking-widest mt-4 hover:bg-emerald-400 transition-all">Save Changes</button>
                 </div>
             `;
             document.getElementById('modal-container').classList.remove('hidden');
         }
 
-        async function updateUser(uid) {
-            const username = document.getElementById('m-username').value;
-            const is_admin = document.getElementById('m-admin').checked;
-            await supabaseClient.from('profiles').update({ username, is_admin }).eq('id', uid);
+        async function saveUser(userId) {
+            const username = document.getElementById('edit-username').value;
+            const is_admin = document.getElementById('edit-is-admin').checked;
+            
+            const { error } = await supabaseClient.from('profiles').update({ username, is_admin }).eq('id', userId);
+            if(error) return alert(error.message);
+            
             closeModal();
             loadUsers();
         }
 
-        async function toggleBan(uid, current) {
-            if (confirm(`Execute Terminal ${current ? 'Restore' : 'Termination'}?`)) {
-                await supabaseClient.from('profiles').update({ is_banned: !current, ban_reason: current ? null : 'Manual Admin Ban' }).eq('id', uid);
+        async function toggleBan(userId, currentStatus) {
+            if(confirm(`Are you sure you want to ${currentStatus ? 'unban' : 'ban'} this user?`)) {
+                await supabaseClient.from('profiles').update({ is_banned: !currentStatus }).eq('id', userId);
                 loadUsers();
-                loadStats();
             }
         }
 
-        // --- Post Intelligence ---
+        // --- Post & Analytics Management ---
+
         async function loadPosts() {
-            const { data: posts } = await supabaseClient.from('posts').select(`*, profiles(username), likes(count), bookmarks(count)`).order('created_at', { ascending: false });
-            const container = document.getElementById('section-posts');
-            container.innerHTML = `
+            const { data: posts } = await supabaseClient.from('posts').select(`
+                *, 
+                profiles(username),
+                likes(count),
+                bookmarks(count)
+            `).order('created_at', { ascending: false });
+
+            document.getElementById('post-list-container').innerHTML = `
                 <table class="w-full text-left">
-                    <thead class="text-[10px] uppercase text-zinc-500 border-b border-white/5">
-                        <tr><th class="p-8">Post Identifier</th><th class="p-8 text-center">Engagement</th><th class="p-8 text-right">Actions</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-white/5">
-                        ${posts.map(p => `
-                            <tr class="hover:bg-white/[0.02] transition-colors">
-                                <td class="p-8">
-                                    <div class="font-bold text-sm mb-1 line-clamp-1">${p.title || p.content.substring(0, 30)}</div>
-                                    <div class="text-[10px] text-zinc-600 italic">by @${p.profiles?.username} • ${new Date(p.created_at).toLocaleString()}</div>
-                                </td>
-                                <td class="p-8">
-                                    <div class="flex justify-center gap-6">
-                                        <button onclick="viewEngagement('${p.id}', 'likes')" class="text-center group">
-                                            <div class="text-xs font-black text-red-500 group-hover:scale-125 transition-all">${p.likes?.[0]?.count || 0}</div>
-                                            <div class="text-[8px] font-bold text-zinc-600 uppercase">Likes</div>
-                                        </button>
-                                        <button onclick="viewEngagement('${p.id}', 'bookmarks')" class="text-center group">
-                                            <div class="text-xs font-black text-blue-500 group-hover:scale-125 transition-all">${p.bookmarks?.[0]?.count || 0}</div>
-                                            <div class="text-[8px] font-bold text-zinc-600 uppercase">Saves</div>
-                                        </button>
-                                    </div>
-                                </td>
-                                <td class="p-8 text-right">
-                                    <button onclick="deletePost('${p.id}')" class="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-black transition-all">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    <tr class="text-[10px] uppercase text-zinc-500 border-b border-white/5">
+                        <th class="p-6">Content Overview</th>
+                        <th class="p-6 text-center">Engagement</th>
+                        <th class="p-6">Actions</th>
+                    </tr>
+                    ${posts.map(p => `
+                        <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-all">
+                            <td class="p-6">
+                                <div class="font-bold text-white text-sm line-clamp-1">${p.title || 'Untitled'}</div>
+                                <div class="text-[10px] text-zinc-500">by @${p.profiles?.username} • ${new Date(p.created_at).toLocaleDateString()}</div>
+                            </td>
+                            <td class="p-6">
+                                <div class="flex items-center justify-center gap-4">
+                                    <button onclick="viewEngagement('${p.id}', 'likes')" class="text-center group">
+                                        <div class="text-xs font-black text-emerald-400 group-hover:scale-110 transition-all">${p.likes?.[0]?.count || 0}</div>
+                                        <div class="text-[8px] uppercase font-bold text-zinc-600">Likes</div>
                                     </button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
+                                    <button onclick="viewEngagement('${p.id}', 'bookmarks')" class="text-center group">
+                                        <div class="text-xs font-black text-blue-400 group-hover:scale-110 transition-all">${p.bookmarks?.[0]?.count || 0}</div>
+                                        <div class="text-[8px] uppercase font-bold text-zinc-600">Saves</div>
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="p-6">
+                                <div class="flex gap-2">
+                                    <button onclick="editPostModal('${p.id}')" class="p-2 bg-white/5 rounded-lg text-zinc-400 hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                                    <button onclick="deletePost('${p.id}')" class="p-2 bg-red-500/10 rounded-lg text-red-500 hover:bg-red-500 hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('')}
                 </table>
             `;
         }
 
-        async function viewEngagement(pid, table) {
-            const { data } = await supabaseClient.from(table).select('profiles(username)').eq('post_id', pid);
+        async function viewEngagement(postId, type) {
+            // Fetch users who liked or bookmarked
+            const table = type === 'likes' ? 'likes' : 'bookmarks';
+            const { data } = await supabaseClient.from(table).select('profiles(username)').eq('post_id', postId);
+            
             const content = document.getElementById('modal-content');
             content.innerHTML = `
-                <h2 class="text-2xl font-black italic uppercase mb-6">Signal Interaction: ${table}</h2>
-                <div class="space-y-2 max-h-72 overflow-y-auto custom-scrollbar pr-4">
-                    ${data.length > 0 ? data.map(i => `
-                        <div class="p-4 glass rounded-2xl flex items-center gap-3 border-white/5">
-                            <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-[10px]">@</div>
-                            <span class="text-sm font-bold text-zinc-300">${i.profiles.username}</span>
+                <h2 class="text-2xl font-black italic uppercase mb-6">${type} List</h2>
+                <div class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
+                    ${data && data.length > 0 ? data.map(item => `
+                        <div class="p-3 glass rounded-xl border-white/5 flex items-center gap-3">
+                            <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-[10px] flex items-center justify-center font-bold">@</div>
+                            <span class="text-sm font-bold text-zinc-300">${item.profiles.username}</span>
                         </div>
-                    `).join('') : '<div class="text-zinc-600 text-center py-10 italic">No signals found in this sector.</div>'}
+                    `).join('') : '<div class="text-zinc-600 italic text-center py-10">No engagement signals found</div>'}
                 </div>
             `;
             document.getElementById('modal-container').classList.remove('hidden');
         }
 
-        async function loadLogs() {
-            const { data: logs } = await supabaseClient.from('security_logs').select('*, profiles(username)').order('created_at', { ascending: false });
-            const container = document.getElementById('section-logs');
-            container.innerHTML = `
-                <table class="w-full text-left">
-                    <thead class="text-[10px] uppercase text-zinc-500 border-b border-white/5">
-                        <tr><th class="p-8">Timestamp</th><th class="p-8">Event Type</th><th class="p-8">Source IP</th><th class="p-8">User Reference</th></tr>
-                    </thead>
-                    <tbody class="divide-y divide-white/5">
-                        ${logs.map(l => `
-                            <tr class="text-xs ${l.event_type.includes('UNAUTHORIZED') ? 'bg-red-500/5' : ''}">
-                                <td class="p-8 text-zinc-500 font-mono">${new Date(l.created_at).toLocaleString()}</td>
-                                <td class="p-8 font-bold ${l.event_type.includes('UNAUTHORIZED') ? 'text-red-500' : 'text-zinc-300'}">${l.event_type}</td>
-                                <td class="p-8 text-zinc-400 font-mono">${l.ip_address}</td>
-                                <td class="p-8 text-zinc-500">@${l.profiles?.username || 'Unknown/Guest'}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+        async function editPostModal(postId) {
+            const { data: post } = await supabaseClient.from('posts').select('*').eq('id', postId).single();
+            const content = document.getElementById('modal-content');
+            content.innerHTML = `
+                <h2 class="text-2xl font-black italic uppercase mb-6">Modify Transmission</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2">Headline</label>
+                        <input type="text" id="edit-post-title" value="${post.title || ''}" class="w-full rounded-2xl p-4 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-2">Message Content</label>
+                        <textarea id="edit-post-content" class="w-full rounded-2xl p-4 text-sm min-h-[150px]">${post.content}</textarea>
+                    </div>
+                    <button onclick="savePost('${post.id}')" class="w-full py-4 bg-emerald-500 text-black rounded-2xl font-black uppercase tracking-widest mt-4 hover:bg-emerald-400 transition-all">Update Signal</button>
+                </div>
             `;
+            document.getElementById('modal-container').classList.remove('hidden');
         }
 
-        async function deletePost(pid) {
-            if(confirm("Confirm Signal Deletion?")) {
-                await supabaseClient.from('posts').delete().eq('id', pid);
+        async function savePost(postId) {
+            const title = document.getElementById('edit-post-title').value;
+            const content = document.getElementById('edit-post-content').value;
+            
+            const { error } = await supabaseClient.from('posts').update({ title, content }).eq('id', postId);
+            if(error) return alert(error.message);
+            
+            closeModal();
+            loadPosts();
+        }
+
+        // --- Deployment Logic (Existing) ---
+
+        async function uploadToStorage(file, folder) {
+            if (!file) return null;
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+            const filePath = `${folder}/${fileName}`;
+            const { data, error } = await supabaseClient.storage.from('uploads').upload(filePath, file);
+            if (error) return null;
+            const { data: { publicUrl } } = supabaseClient.storage.from('uploads').getPublicUrl(filePath);
+            return publicUrl;
+        }
+
+        async function handleDeployPost() {
+            const btn = document.getElementById('btn-deploy');
+            const deployText = document.getElementById('deploy-text');
+            const title = document.getElementById('post-title').value.trim();
+            const content = document.getElementById('post-content').value.trim();
+            const caption = document.getElementById('post-image-caption').value.trim();
+            const imageFile = document.getElementById('upload-image').files[0];
+            const attachmentFile = document.getElementById('upload-file').files[0];
+
+            if (!content) return alert("Content is required.");
+            btn.disabled = true;
+            deployText.innerText = "UPLOADING...";
+
+            let imgUrl = await uploadToStorage(imageFile, 'images');
+            let fileUrl = await uploadToStorage(attachmentFile, 'files');
+
+            const { data: post, error } = await supabaseClient.from('posts').insert([{
+                title: title || "New Transmission",
+                content: content,
+                image_url: imgUrl,
+                image_caption: caption || null,
+                user_id: currentAdmin.id
+            }]).select().single();
+
+            if (fileUrl && post) {
+                await supabaseClient.from('shared_files').insert([{
+                    post_id: post.id,
+                    file_name: attachmentFile.name,
+                    file_url: fileUrl,
+                    file_size: `${(attachmentFile.size / 1024 / 1024).toFixed(2)} MB`
+                }]);
+            }
+
+            alert("Deployed Successfully.");
+            window.location.reload();
+        }
+
+        async function deletePost(id) {
+            if(confirm("Permanently delete this transmission?")) {
+                await supabaseClient.from('posts').delete().eq('id', id);
                 loadPosts();
             }
         }
 
-        function closeModal() { document.getElementById('modal-container').classList.add('hidden'); }
-        async function handleLogout() { await supabaseClient.auth.signOut(); window.location.href = 'index.html'; }
-
-        // Startup
-        securityCheck();
+        // --- Init ---
+        window.onload = checkAdmin;
+        
+        // File Previews UI logic
+        document.getElementById('upload-image').addEventListener('change', e => {
+            if (e.target.files[0]) {
+                document.getElementById('image-filename').innerText = e.target.files[0].name;
+                const r = new FileReader();
+                r.onload = ev => {
+                    document.getElementById('image-preview').src = ev.target.result;
+                    document.getElementById('image-preview-container').classList.remove('hidden');
+                };
+                r.readAsDataURL(e.target.files[0]);
+            }
+        });
+        document.getElementById('upload-file').addEventListener('change', e => {
+            if (e.target.files[0]) document.getElementById('file-filename').innerText = `READY: ${e.target.files[0].name}`;
+        });
     </script>
 </body>
 </html>
