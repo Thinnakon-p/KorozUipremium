@@ -159,6 +159,9 @@
                         </div>
                     </div>
                     <div class="flex gap-2">
+                        <button onclick="toggleAdminRole('${user.id}', ${user.is_admin})" title="Toggle Admin Role" class="p-2 hover:bg-white/5 rounded-xl ${user.is_admin ? 'text-emerald-500' : 'text-zinc-500'}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+                        </button>
                         <button onclick="editUser('${user.id}', '${user.username}')" class="p-2 hover:bg-white/5 rounded-xl text-blue-400">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                         </button>
@@ -194,6 +197,19 @@
             `).join('');
         }
 
+        async function toggleAdminRole(id, currentStatus) {
+            if (id === currentAdmin.id) {
+                alert("You cannot revoke your own admin rights.");
+                return;
+            }
+            const confirmMsg = currentStatus ? "Revoke Admin privileges from this user?" : "Grant Admin privileges to this user?";
+            if (confirm(confirmMsg)) {
+                const { error } = await supabaseClient.from('profiles').update({ is_admin: !currentStatus }).eq('id', id);
+                if (error) alert(error.message);
+                else loadUsers();
+            }
+        }
+
         async function editUser(id, oldName) {
             const newName = prompt("Enter new username for profile:", oldName);
             if (!newName || newName === oldName) return;
@@ -203,7 +219,11 @@
         }
 
         async function deleteUser(id) {
-            if (confirm("🚨 WARNING: Delete user profile? This may cause data inconsistencies if Auth record is not also removed.")) {
+            if (id === currentAdmin.id) {
+                alert("You cannot delete your own profile while logged in.");
+                return;
+            }
+            if (confirm("🚨 WARNING: Delete user profile?\n\nThis will remove the user's metadata from the 'profiles' table. Note that the authentication account (email/password) must be managed through the Supabase Dashboard directly.")) {
                 const { error } = await supabaseClient.from('profiles').delete().eq('id', id);
                 if (error) alert(error.message);
                 else loadUsers();
