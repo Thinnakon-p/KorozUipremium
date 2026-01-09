@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebula AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        body { font-family: 'Anuphan', sans-serif; background: #000; color: #fff; }
+        .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
+    </style>
+</head>
+<body class="p-10">
+    <div class="max-w-5xl mx-auto space-y-10">
+        <header class="flex justify-between items-center border-b border-white/10 pb-6">
+            <h1 class="text-4xl font-black italic uppercase">AI Inspector</h1>
+            <button onclick="runAnalysis()" class="bg-white text-black px-8 py-3 rounded-2xl text-xs font-black uppercase">Start Scan</button>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="glass p-8 rounded-[2.5rem] h-[500px] overflow-auto">
+                <h3 class="text-[10px] font-bold text-zinc-500 uppercase mb-4">System Data</h3>
+                <pre id="raw-data" class="text-[10px] text-emerald-500/50 font-mono italic">Ready to fetch...</pre>
+            </div>
+            <div class="glass p-8 rounded-[2.5rem] h-[500px] overflow-auto">
+                <h3 class="text-[10px] font-bold text-blue-500 uppercase mb-4">AI Analysis</h3>
+                <div id="ai-report" class="text-sm text-zinc-400 leading-relaxed italic">กดปุ่ม Start Scan เพื่อเริ่มวิเคราะห์...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function runAnalysis() {
+            const { data: users } = await supabaseClient.from('profiles').select('*');
+            document.getElementById('raw-data').innerText = JSON.stringify(users, null, 2);
+            document.getElementById('ai-report').innerText = "AI กำลังตรวจสอบความเสี่ยงของโหนดผู้ใช้ในฐานข้อมูล...";
+            
+            // Logic เชื่อมต่อ Gemini จะอยู่ตรงนี้โดยใช้ CONFIG.GEMINI_API_KEY
+        }
+    </script>
+</body>
+</html>

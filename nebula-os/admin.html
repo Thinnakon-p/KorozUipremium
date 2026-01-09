@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebula Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        body { font-family: 'Anuphan', sans-serif; background: #050505; color: #fff; }
+        .glass { background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body class="p-10">
+    <div id="admin-content" class="hidden max-w-6xl mx-auto space-y-12">
+        <header class="flex justify-between items-end border-b border-white/5 pb-8">
+            <div>
+                <h1 class="text-4xl font-black uppercase italic">Command Center</h1>
+                <p class="text-emerald-500 text-[10px] font-bold tracking-widest uppercase">Admin Access Verified</p>
+            </div>
+            <div class="flex gap-4">
+                <a href="ai-inspector.html" class="bg-emerald-500 text-black px-6 py-2 rounded-xl text-xs font-black uppercase">AI Scan</a>
+                <a href="index.html" class="glass px-6 py-2 rounded-xl text-xs font-bold uppercase">Public View</a>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="glass p-10 rounded-[3rem] space-y-6">
+                <h2 class="text-xs font-bold text-zinc-500 uppercase">User Nodes</h2>
+                <div id="user-list" class="space-y-4 h-[400px] overflow-auto pr-4"></div>
+            </div>
+
+            <div class="glass p-10 rounded-[3rem] space-y-6 text-center">
+                <h2 class="text-xs font-bold text-zinc-500 uppercase">Security</h2>
+                <button onclick="alert('System Purge Initiated')" class="w-full py-4 glass text-red-500 text-xs font-bold uppercase rounded-2xl hover:bg-red-500/10">Flush Logs</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function checkAccess() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            const isAdmin = await checkAdminStatus(session?.user);
+
+            if (!isAdmin) {
+                document.body.innerHTML = "<div class='h-screen flex items-center justify-center font-black text-red-500'>ACCESS DENIED</div>";
+            } else {
+                document.getElementById('admin-content').classList.remove('hidden');
+                loadUsers();
+            }
+        }
+
+        async function loadUsers() {
+            const { data: users } = await supabaseClient.from('profiles').select('*');
+            document.getElementById('user-list').innerHTML = (users || []).map(u => `
+                <div class="flex justify-between items-center p-4 glass rounded-2xl">
+                    <span class="text-sm font-bold">${u.username || u.id.slice(0,8)}</span>
+                    <button class="text-[10px] font-black text-red-500 uppercase">Ban</button>
+                </div>
+            `).join('');
+        }
+
+        window.onload = checkAccess;
+    </script>
+</body>
+</html>
