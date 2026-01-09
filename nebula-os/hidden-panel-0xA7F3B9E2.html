@@ -3,316 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nebula Admin | Ultimate Control</title>
+    <title>NEBULA - Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;700&display=swap');
-        .admin-layout { font-family: 'Anuphan', sans-serif; background: #050505; color: #fff; }
+        body { font-family: 'Anuphan', sans-serif; background: #050505; color: #fff; }
         .glass { background: rgba(255,255,255,0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
-        .sidebar-active { background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; color: #10b981; opacity: 1 !important; }
-        input, textarea { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
-        .modal-bg { background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); }
-        .img-preview-mini { width: 45px; height: 45px; object-fit: cover; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .sidebar-active { background: rgba(255,255,255,0.1); border-left: 4px solid #10b981; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        input, textarea, select { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
+        input:focus, textarea:focus { border-color: #10b981 !important; outline: none; }
+        .file-upload-zone { border: 2px dashed rgba(255,255,255,0.1); transition: all 0.3s ease; }
+        .file-upload-zone:hover { border-color: #10b981; background: rgba(16, 185, 129, 0.05); }
     </style>
 </head>
-<body class="admin-layout min-h-screen">
+<body class="min-h-screen flex">
 
-    <div id="admin-ui" class="flex min-h-screen">
-        <!-- Sidebar Navigation -->
-        <aside class="w-64 glass border-r border-white/5 h-screen sticky top-0 flex flex-col p-6">
-            <div class="text-2xl font-black italic mb-10 tracking-tighter text-emerald-500">
-                NEBULA <span class="text-white">ADM</span>
-            </div>
-            
-            <nav class="flex-1 space-y-2">
-                <button onclick="switchTab('users')" id="btn-users" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all flex items-center gap-3 sidebar-active">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    จัดการผู้ใช้
-                </button>
-                <button onclick="switchTab('posts')" id="btn-posts" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all flex items-center gap-3 opacity-50">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M8 16h8"/><path d="M8 8h1"/></svg>
-                    จัดการโพสต์
-                </button>
-            </nav>
-
-            <div class="pt-6 border-t border-white/5 space-y-4">
-                <div id="admin-info" class="px-2 pb-4 text-[10px] text-zinc-500 font-mono italic overflow-hidden text-ellipsis">Admin: Checking...</div>
-                <button onclick="handleLogout()" class="w-full p-4 rounded-2xl bg-red-500/10 text-red-500 text-xs font-bold hover:bg-red-500/20 transition-all flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-                    ออกจากระบบ
-                </button>
-            </div>
-        </aside>
-
-        <!-- Main Workspace -->
-        <main class="flex-1 p-10 overflow-y-auto custom-scrollbar">
-            <header class="mb-10 flex justify-between items-end">
-                <div>
-                    <h1 id="tab-title" class="text-4xl font-black uppercase italic tracking-tighter">Command Center</h1>
-                    <p id="tab-desc" class="text-zinc-500 text-[10px] tracking-[0.2em] uppercase mt-1">Universal System Management</p>
-                </div>
-                <div id="status-badge" class="px-4 py-1.5 bg-emerald-500/10 text-emerald-500 text-[10px] font-black rounded-full border border-emerald-500/20">SYSTEM ONLINE</div>
-            </header>
-
-            <!-- Status Messaging -->
-            <div id="loading-state" class="hidden py-20 text-center animate-pulse text-zinc-500 flex flex-col items-center gap-4">
-                <div class="w-8 h-8 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-                สแกนเน็ตเวิร์ก...
-            </div>
-            <div id="error-display" class="hidden p-6 bg-red-500/10 border border-red-500/20 rounded-3xl text-red-500 text-sm mb-6 flex items-start gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-                <span id="error-text"></span>
-            </div>
-
-            <!-- Content Sections -->
-            <section id="section-users" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></section>
-            
-            <section id="section-posts" class="hidden glass rounded-[2.5rem] overflow-hidden border border-white/5"></section>
-        </main>
-    </div>
-
-    <!-- Global Modal System -->
-    <div id="modal-container" class="fixed inset-0 z-50 hidden flex items-center justify-center p-6 modal-bg">
-        <div class="glass max-w-lg w-full rounded-[3rem] p-10 relative border border-white/10 shadow-2xl animate-fade-in">
-            <button onclick="closeModal()" class="absolute top-8 right-8 text-zinc-500 hover:text-white transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+    <!-- Sidebar -->
+    <aside class="w-64 glass border-r border-white/5 h-screen sticky top-0 flex flex-col p-6">
+        <div class="text-2xl font-black italic mb-10 tracking-tighter">NEBULA <span class="text-[10px] bg-emerald-500 text-black px-2 py-0.5 rounded ml-1 not-italic font-bold">ADM</span></div>
+        
+        <nav class="flex-1 space-y-2">
+            <button onclick="switchTab('users')" id="btn-users" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all flex items-center gap-3 sidebar-active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Users
             </button>
-            <div id="modal-content"></div>
-        </div>
-    </div>
+            <button onclick="switchTab('posts')" id="btn-posts" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all flex items-center gap-3 opacity-50 hover:opacity-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                Manage Posts
+            </button>
+            <button onclick="switchTab('broadcast')" id="btn-broadcast" class="w-full text-left p-4 rounded-2xl text-sm font-bold transition-all flex items-center gap-3 opacity-50 hover:opacity-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                Create New Post
+            </button>
+        </nav>
 
-    <script>
-        // --- Core Logic & Database Operations ---
+        <a href="index.html" class="p-4 rounded-2xl text-sm font-bold text-zinc-500 hover:text-white transition-all flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Back to Site
+        </a>
+    </aside>
 
-        // 1. User Management Functions
-        async function loadUsers() {
-            showLoading(true);
-            const container = document.getElementById('section-users');
-            const errBox = document.getElementById('error-display');
-            errBox.classList.add('hidden');
+    <!-- Main Content -->
+    <main class="flex-1 p-10 overflow-y-auto">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 id="tab-title" class="text-4xl font-black uppercase italic tracking-tighter">User Directory</h1>
+                <p id="tab-desc" class="text-zinc-500 text-xs tracking-widest uppercase mt-1">System Administration</p>
+            </div>
+            <div id="admin-info" class="text-right">
+                <div class="text-sm font-bold italic" id="admin-name">Admin Name</div>
+                <div class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Master Access</div>
+            </div>
+        </header>
 
-            try {
-                const { data: users, error } = await supabaseClient
-                    .from('profiles')
-                    .select('id, username, is_admin, is_banned, created_at')
-                    .order('created_at', { ascending: false });
+        <!-- Sections (Same as before but updated Broadcast) -->
+        <section id="section-users" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="user-list-container"></div>
+        </section>
 
-                if (error) throw error;
+        <section id="section-posts" class="hidden space-y-4">
+            <div class="glass overflow-hidden rounded-[2rem] border-white/5" id="post-list-container"></div>
+        </section>
 
-                container.innerHTML = users.map(u => `
-                    <div class="glass p-6 rounded-[2rem] border-white/5 space-y-5 transition-all hover:border-white/20 ${u.is_banned ? 'opacity-40 grayscale' : ''}">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-blue-500/20 flex items-center justify-center font-bold text-emerald-500 text-xl border border-white/5">
-                                ${u.username?.[0]?.toUpperCase() || '?'}
-                            </div>
-                            <div class="overflow-hidden">
-                                <div class="font-bold flex items-center gap-2 truncate">
-                                    ${u.username || 'Unidentified'}
-                                    ${u.is_admin ? '<span class="text-[7px] bg-emerald-500 text-black px-1.5 py-0.5 rounded-full font-black tracking-tighter">ADMIN</span>' : ''}
-                                </div>
-                                <div class="text-[10px] text-zinc-600 font-mono">${u.id.substring(0,18)}...</div>
-                            </div>
+        <!-- Improved Broadcast Section with Real Uploads -->
+        <section id="section-broadcast" class="hidden max-w-4xl mx-auto pb-20">
+            <div class="glass p-10 rounded-[3rem] border-white/10 shadow-2xl">
+                <h3 class="text-xl font-bold mb-8 italic uppercase flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center not-italic">🚀</span>
+                    Compose High-Priority Post
+                </h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left: Text Data -->
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Headline</label>
+                            <input type="text" id="post-title" placeholder="Topic name..." class="w-full rounded-2xl p-4 text-sm">
                         </div>
-                        <div class="grid grid-cols-2 gap-2 pt-2">
-                            <button onclick="editUserRole('${u.id}', ${u.is_admin})" class="py-3 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">Role</button>
-                            <button onclick="toggleBan('${u.id}', ${u.is_banned})" class="py-3 ${u.is_banned ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'} rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
-                                ${u.is_banned ? 'Restore' : 'Ban'}
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (err) {
-                showError(err.message);
-            } finally {
-                showLoading(false);
-            }
-        }
 
-        // 2. Post Management Functions (With Image Support)
-        async function loadPosts() {
-            showLoading(true);
-            const container = document.getElementById('section-posts');
-            try {
-                const { data: posts, error } = await supabaseClient
-                    .from('posts')
-                    .select('*, profiles(username)')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                container.innerHTML = `
-                    <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="bg-white/5 text-[9px] uppercase tracking-[0.3em] text-zinc-500 font-black">
-                                <tr>
-                                    <th class="p-6 border-b border-white/5">Media</th>
-                                    <th class="p-6 border-b border-white/5">Signal Content / Origin</th>
-                                    <th class="p-6 border-b border-white/5 text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-white/5">
-                                ${posts.map(p => `
-                                    <tr class="hover:bg-white/[0.03] transition-colors group">
-                                        <td class="p-6">
-                                            ${p.image_url 
-                                                ? `<img src="${p.image_url}" class="img-preview-mini hover:scale-110 transition-transform cursor-pointer shadow-lg" onclick="window.open('${p.image_url}')">` 
-                                                : `<div class="w-11 h-11 bg-white/5 rounded-xl flex items-center justify-center text-[8px] text-zinc-700 font-bold border border-dashed border-white/10 italic">N/A</div>`}
-                                        </td>
-                                        <td class="p-6">
-                                            <div class="text-sm font-bold text-zinc-200 line-clamp-1 group-hover:text-white transition-colors">${p.content}</div>
-                                            <div class="text-[10px] text-emerald-500/40 font-mono mt-1">
-                                                BY <span class="text-emerald-500">@${p.profiles?.username || 'GHOST_USER'}</span> • ${new Date(p.created_at).toLocaleString()}
-                                            </div>
-                                        </td>
-                                        <td class="p-6 text-right">
-                                            <div class="flex justify-end gap-3">
-                                                <button onclick="editPostModal('${p.id}')" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all">Edit</button>
-                                                <button onclick="deletePost('${p.id}')" class="text-[10px] font-black uppercase tracking-widest text-red-900 hover:text-red-500 transition-all">Purge</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            } catch (err) {
-                showError(err.message);
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        async function editPostModal(pid) {
-            const { data: p } = await supabaseClient.from('posts').select('*').eq('id', pid).single();
-            const content = document.getElementById('modal-content');
-            content.innerHTML = `
-                <div class="space-y-8">
-                    <div>
-                        <h2 class="text-3xl font-black uppercase italic tracking-tighter mb-1">Signal Edit</h2>
-                        <p class="text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Post ID: ${pid}</p>
-                    </div>
-                    
-                    <div class="space-y-5">
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black text-emerald-500 uppercase tracking-widest ml-1">Message Content</label>
-                            <textarea id="e-content" class="w-full rounded-2xl p-5 text-sm min-h-[120px] focus:ring-1 ring-emerald-500/50 outline-none transition-all">${p.content}</textarea>
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Main Message</label>
+                            <textarea id="post-content" placeholder="Type your announcement here..." class="w-full rounded-2xl p-4 text-sm min-h-[180px]"></textarea>
                         </div>
                         
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black text-emerald-500 uppercase tracking-widest ml-1">Media URL (IMG)</label>
-                            <input type="text" id="e-image" value="${p.image_url || ''}" class="w-full rounded-2xl p-5 text-sm focus:ring-1 ring-emerald-500/50 outline-none transition-all" placeholder="Enter image direct link...">
-                            ${p.image_url ? `
-                                <div class="mt-4 rounded-2xl overflow-hidden border border-white/10">
-                                    <img src="${p.image_url}" class="w-full h-32 object-cover opacity-60">
-                                </div>
-                            ` : ''}
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Image Caption (Optional)</label>
+                            <input type="text" id="post-image-caption" placeholder="Briefly describe the visual content..." class="w-full rounded-2xl p-4 text-sm">
                         </div>
                     </div>
 
-                    <div class="flex gap-3">
-                        <button onclick="closeModal()" class="flex-1 py-4 bg-white/5 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em]">Cancel</button>
-                        <button onclick="updatePost('${p.id}')" class="flex-[2] py-4 bg-emerald-500 text-black rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-emerald-400 shadow-xl shadow-emerald-500/10 active:scale-95 transition-all">Execute Update</button>
+                    <!-- Right: File Uploads -->
+                    <div class="space-y-6">
+                        <!-- Image Upload -->
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Visual Asset (All Image Types)</label>
+                            <div class="file-upload-zone rounded-3xl p-6 text-center relative overflow-hidden h-40 flex flex-col items-center justify-center cursor-pointer group">
+                                <input type="file" id="upload-image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10">
+                                <div id="image-preview-container" class="absolute inset-0 hidden">
+                                    <img id="image-preview" src="" class="w-full h-full object-cover opacity-30">
+                                </div>
+                                <div class="relative z-0 flex flex-col items-center pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-zinc-500 mb-2 group-hover:text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                    <span class="text-xs font-bold text-zinc-400" id="image-filename">Click to Select Photo</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- General File Upload -->
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-zinc-500 mb-2 block tracking-widest">Downloadable Resource (ZIP, PDF, EXE, etc.)</label>
+                            <div class="file-upload-zone rounded-3xl p-6 text-center relative h-40 flex flex-col items-center justify-center cursor-pointer group">
+                                <input type="file" id="upload-file" class="absolute inset-0 opacity-0 cursor-pointer z-10">
+                                <div class="relative z-0 flex flex-col items-center pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-zinc-500 mb-2 group-hover:text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    <span class="text-xs font-bold text-zinc-400" id="file-filename">Select any file type</span>
+                                    <span class="text-[10px] text-zinc-600 mt-1 italic">Users can download this via post</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="handleDeployPost()" id="btn-deploy" class="w-full py-6 bg-emerald-500 text-black rounded-3xl font-black uppercase tracking-widest hover:bg-emerald-400 transition-all flex items-center justify-center gap-3">
+                            <span id="deploy-text">Deploy Signal</span>
+                        </button>
                     </div>
                 </div>
-            `;
-            document.getElementById('modal-container').classList.remove('hidden');
-        }
+            </div>
+        </section>
+    </main>
 
-        async function updatePost(pid) {
-            const content = document.getElementById('e-content').value;
-            const image_url = document.getElementById('e-image').value;
-            const { error } = await supabaseClient.from('posts').update({ content, image_url }).eq('id', pid);
-            if(!error) {
-                closeModal();
-                loadPosts();
-            } else {
-                alert("Update Error: " + error.message);
+    <script>
+        let currentAdmin = null;
+
+        // UI Handlers for File Input Previews
+        document.getElementById('upload-image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('image-filename').innerText = file.name;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('image-preview').src = event.target.result;
+                    document.getElementById('image-preview-container').classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
             }
-        }
+        });
 
-        async function deletePost(pid) {
-            if(confirm("Confirm deletion of this signal? (Cannot be undone)")) {
-                const { error } = await supabaseClient.from('posts').delete().eq('id', pid);
-                if(error) alert(error.message);
-                loadPosts();
+        document.getElementById('upload-file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('file-filename').innerText = `READY: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                document.getElementById('file-filename').classList.add('text-blue-400');
             }
-        }
+        });
 
-        async function toggleBan(uid, currentStatus) {
-            try {
-                const { error } = await supabaseClient.from('profiles').update({ is_banned: !currentStatus }).eq('id', uid);
-                if (error) throw error;
-                loadUsers();
-            } catch (err) { alert(err.message); }
-        }
+        async function checkAdmin() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) { window.location.href = 'index.html'; return; }
 
-        async function editUserRole(uid, currentAdmin) {
-            if(confirm(`Toggle administrator privileges for this user?`)) {
-                await supabaseClient.from('profiles').update({ is_admin: !currentAdmin }).eq('id', uid);
-                loadUsers();
-            }
-        }
+            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
+            if (!profile || !profile.is_admin) { window.location.href = 'index.html'; return; }
 
-        // --- UI Support Functions ---
-        
-        function showLoading(show) {
-            document.getElementById('loading-state').classList.toggle('hidden', !show);
-        }
-
-        function showError(msg) {
-            const errBox = document.getElementById('error-display');
-            document.getElementById('error-text').innerText = msg;
-            errBox.classList.remove('hidden');
+            currentAdmin = profile;
+            document.getElementById('admin-name').innerText = profile.username;
+            loadUsers();
         }
 
         function switchTab(tab) {
-            const btns = ['users', 'posts'];
-            btns.forEach(b => {
-                const el = document.getElementById(`btn-${b}`);
-                el.classList.add('opacity-50');
-                el.classList.remove('sidebar-active');
+            ['users', 'posts', 'broadcast'].forEach(s => {
+                document.getElementById(`section-${s}`).classList.toggle('hidden', s !== tab);
+                document.getElementById(`btn-${s}`).classList.toggle('sidebar-active', s === tab);
+                document.getElementById(`btn-${s}`).classList.toggle('opacity-50', s !== tab);
             });
-            
-            const activeBtn = document.getElementById(`btn-${tab}`);
-            activeBtn.classList.remove('opacity-50');
-            activeBtn.classList.add('sidebar-active');
-            
-            document.getElementById('section-users').classList.toggle('hidden', tab !== 'users');
-            document.getElementById('section-posts').classList.toggle('hidden', tab !== 'posts');
-            
-            document.getElementById('tab-title').innerText = tab === 'users' ? 'User Management' : 'Feed Control';
-            
-            if(tab === 'users') loadUsers();
-            if(tab === 'posts') loadPosts();
+            if (tab === 'users') loadUsers();
+            if (tab === 'posts') loadPosts();
         }
 
-        function closeModal() { document.getElementById('modal-container').classList.add('hidden'); }
-        
-        async function checkSession() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (user) {
-                document.getElementById('admin-info').innerText = `SESSION: ${user.email}`;
-            } else {
-                window.location.href = 'index.html';
+        async function uploadToStorage(file, folder) {
+            if (!file) return null;
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+            const filePath = `${folder}/${fileName}`;
+
+            const { data, error } = await supabaseClient.storage
+                .from('uploads') // Ensure this bucket exists and is public in Supabase
+                .upload(filePath, file);
+
+            if (error) {
+                console.error("Upload Error:", error);
+                return null;
+            }
+
+            const { data: { publicUrl } } = supabaseClient.storage
+                .from('uploads')
+                .getPublicUrl(filePath);
+
+            return publicUrl;
+        }
+
+        async function handleDeployPost() {
+            const btn = document.getElementById('btn-deploy');
+            const deployText = document.getElementById('deploy-text');
+            const title = document.getElementById('post-title').value.trim();
+            const content = document.getElementById('post-content').value.trim();
+            const caption = document.getElementById('post-image-caption').value.trim();
+            
+            const imageFile = document.getElementById('upload-image').files[0];
+            const attachmentFile = document.getElementById('upload-file').files[0];
+
+            if (!content) return alert("Please enter post content.");
+
+            btn.disabled = true;
+            deployText.innerText = "UPLOADING ASSETS...";
+
+            // 1. Upload Visuals & Files
+            let uploadedImageUrl = null;
+            let uploadedFileUrl = null;
+
+            if (imageFile) uploadedImageUrl = await uploadToStorage(imageFile, 'images');
+            if (attachmentFile) uploadedFileUrl = await uploadToStorage(attachmentFile, 'files');
+
+            deployText.innerText = "FINALIZING POST...";
+
+            // 2. Insert Post to DB
+            const { data: post, error: postErr } = await supabaseClient.from('posts').insert([{
+                title: title || "New Transmission",
+                content: content,
+                image_url: uploadedImageUrl,
+                image_caption: caption || null,
+                user_id: currentAdmin.id
+            }]).select().single();
+
+            if (postErr) {
+                alert("Database Error: " + postErr.message);
+                btn.disabled = false;
+                deployText.innerText = "Deploy Signal";
+                return;
+            }
+
+            // 3. Link File if exists
+            if (attachmentFile && uploadedFileUrl) {
+                await supabaseClient.from('shared_files').insert([{
+                    post_id: post.id,
+                    file_name: attachmentFile.name,
+                    file_url: uploadedFileUrl,
+                    file_size: `${(attachmentFile.size / 1024 / 1024).toFixed(2)} MB`
+                }]);
+            }
+
+            alert("Transmission Successful.");
+            window.location.reload();
+        }
+
+        // Dummy Data & Loaders
+        async function loadUsers() {
+            const { data: users } = await supabaseClient.from('profiles').select('*').order('username');
+            document.getElementById('user-list-container').innerHTML = users.map(u => `
+                <div class="glass p-5 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-white">${u.username}</div>
+                        <div class="text-[10px] text-zinc-500 font-mono">${u.id}</div>
+                    </div>
+                    <div class="text-[10px] bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded border border-emerald-500/20 font-bold uppercase">
+                        ${u.is_admin ? 'Admin' : 'User'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadPosts() {
+            const { data: posts } = await supabaseClient.from('posts').select('*, profiles(username)').order('created_at', { ascending: false });
+            document.getElementById('post-list-container').innerHTML = `
+                <table class="w-full text-left">
+                    <tr class="text-[10px] uppercase text-zinc-500 border-b border-white/5">
+                        <th class="p-4">Post</th><th class="p-4">Author</th><th class="p-4">Date</th><th class="p-4">Actions</th>
+                    </tr>
+                    ${posts.map(p => `
+                        <tr class="border-b border-white/5 text-sm">
+                            <td class="p-4 font-bold text-zinc-300">${p.title}</td>
+                            <td class="p-4 text-emerald-500">@${p.profiles?.username}</td>
+                            <td class="p-4 text-xs text-zinc-600">${new Date(p.created_at).toLocaleDateString()}</td>
+                            <td class="p-4"><button onclick="deletePost('${p.id}')" class="text-red-500 font-bold hover:underline">DEL</button></td>
+                        </tr>
+                    `).join('')}
+                </table>
+            `;
+        }
+
+        async function deletePost(id) {
+            if(confirm("Confirm deletion?")) {
+                await supabaseClient.from('posts').delete().eq('id', id);
+                loadPosts();
             }
         }
 
-        async function handleLogout() {
-            await supabaseClient.auth.signOut();
-            window.location.href = 'index.html';
-        }
-
-        // Initialize App
-        window.onload = () => {
-            checkSession();
-            loadUsers();
-        };
+        window.onload = checkAdmin;
     </script>
 </body>
 </html>
